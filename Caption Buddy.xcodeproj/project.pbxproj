@@ -1,0 +1,580 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		6C8709132DFAF23B00C4AD1B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C8708F62DFAF23900C4AD1B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6C8708FD2DFAF23900C4AD1B;
+			remoteInfo = "Caption Buddy";
+		};
+		6C87091D2DFAF23B00C4AD1B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C8708F62DFAF23900C4AD1B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6C8708FD2DFAF23900C4AD1B;
+			remoteInfo = "Caption Buddy";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		6C8708FE2DFAF23900C4AD1B /* Caption Buddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Caption Buddy.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C8709122DFAF23B00C4AD1B /* Caption BuddyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Caption BuddyTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C87091C2DFAF23B00C4AD1B /* Caption BuddyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Caption BuddyUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6C8709242DFAF23B00C4AD1B /* Exceptions for "Caption Buddy" folder in "Caption Buddy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6C8708FD2DFAF23900C4AD1B /* Caption Buddy */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		6C8709002DFAF23900C4AD1B /* Caption Buddy */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6C8709242DFAF23B00C4AD1B /* Exceptions for "Caption Buddy" folder in "Caption Buddy" target */,
+			);
+			path = "Caption Buddy";
+			sourceTree = "<group>";
+		};
+		6C8709152DFAF23B00C4AD1B /* Caption BuddyTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Caption BuddyTests";
+			sourceTree = "<group>";
+		};
+		6C87091F2DFAF23B00C4AD1B /* Caption BuddyUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Caption BuddyUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6C8708FB2DFAF23900C4AD1B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6C87090F2DFAF23B00C4AD1B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6C8709192DFAF23B00C4AD1B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6C8708F52DFAF23900C4AD1B = {
+			isa = PBXGroup;
+			children = (
+				6C8709002DFAF23900C4AD1B /* Caption Buddy */,
+				6C8709152DFAF23B00C4AD1B /* Caption BuddyTests */,
+				6C87091F2DFAF23B00C4AD1B /* Caption BuddyUITests */,
+				6C8708FF2DFAF23900C4AD1B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6C8708FF2DFAF23900C4AD1B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6C8708FE2DFAF23900C4AD1B /* Caption Buddy.app */,
+				6C8709122DFAF23B00C4AD1B /* Caption BuddyTests.xctest */,
+				6C87091C2DFAF23B00C4AD1B /* Caption BuddyUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6C8708FD2DFAF23900C4AD1B /* Caption Buddy */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6C8709252DFAF23B00C4AD1B /* Build configuration list for PBXNativeTarget "Caption Buddy" */;
+			buildPhases = (
+				6C8708FA2DFAF23900C4AD1B /* Sources */,
+				6C8708FB2DFAF23900C4AD1B /* Frameworks */,
+				6C8708FC2DFAF23900C4AD1B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6C8709002DFAF23900C4AD1B /* Caption Buddy */,
+			);
+			name = "Caption Buddy";
+			packageProductDependencies = (
+			);
+			productName = "Caption Buddy";
+			productReference = 6C8708FE2DFAF23900C4AD1B /* Caption Buddy.app */;
+			productType = "com.apple.product-type.application";
+		};
+		6C8709112DFAF23B00C4AD1B /* Caption BuddyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6C87092A2DFAF23B00C4AD1B /* Build configuration list for PBXNativeTarget "Caption BuddyTests" */;
+			buildPhases = (
+				6C87090E2DFAF23B00C4AD1B /* Sources */,
+				6C87090F2DFAF23B00C4AD1B /* Frameworks */,
+				6C8709102DFAF23B00C4AD1B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6C8709142DFAF23B00C4AD1B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				6C8709152DFAF23B00C4AD1B /* Caption BuddyTests */,
+			);
+			name = "Caption BuddyTests";
+			packageProductDependencies = (
+			);
+			productName = "Caption BuddyTests";
+			productReference = 6C8709122DFAF23B00C4AD1B /* Caption BuddyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		6C87091B2DFAF23B00C4AD1B /* Caption BuddyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6C87092D2DFAF23B00C4AD1B /* Build configuration list for PBXNativeTarget "Caption BuddyUITests" */;
+			buildPhases = (
+				6C8709182DFAF23B00C4AD1B /* Sources */,
+				6C8709192DFAF23B00C4AD1B /* Frameworks */,
+				6C87091A2DFAF23B00C4AD1B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6C87091E2DFAF23B00C4AD1B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				6C87091F2DFAF23B00C4AD1B /* Caption BuddyUITests */,
+			);
+			name = "Caption BuddyUITests";
+			packageProductDependencies = (
+			);
+			productName = "Caption BuddyUITests";
+			productReference = 6C87091C2DFAF23B00C4AD1B /* Caption BuddyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6C8708F62DFAF23900C4AD1B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					6C8708FD2DFAF23900C4AD1B = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					6C8709112DFAF23B00C4AD1B = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 6C8708FD2DFAF23900C4AD1B;
+					};
+					6C87091B2DFAF23B00C4AD1B = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 6C8708FD2DFAF23900C4AD1B;
+					};
+				};
+			};
+			buildConfigurationList = 6C8708F92DFAF23900C4AD1B /* Build configuration list for PBXProject "Caption Buddy" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6C8708F52DFAF23900C4AD1B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 6C8708FF2DFAF23900C4AD1B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6C8708FD2DFAF23900C4AD1B /* Caption Buddy */,
+				6C8709112DFAF23B00C4AD1B /* Caption BuddyTests */,
+				6C87091B2DFAF23B00C4AD1B /* Caption BuddyUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6C8708FC2DFAF23900C4AD1B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6C8709102DFAF23B00C4AD1B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6C87091A2DFAF23B00C4AD1B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6C8708FA2DFAF23900C4AD1B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6C87090E2DFAF23B00C4AD1B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6C8709182DFAF23B00C4AD1B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6C8709142DFAF23B00C4AD1B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6C8708FD2DFAF23900C4AD1B /* Caption Buddy */;
+			targetProxy = 6C8709132DFAF23B00C4AD1B /* PBXContainerItemProxy */;
+		};
+		6C87091E2DFAF23B00C4AD1B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6C8708FD2DFAF23900C4AD1B /* Caption Buddy */;
+			targetProxy = 6C87091D2DFAF23B00C4AD1B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		6C8709262DFAF23B00C4AD1B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Caption Buddy/Caption_Buddy.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XFAVB8X6YL;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Caption Buddy/Info.plist";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "showcase.job.interview.Caption-Buddy";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6C8709272DFAF23B00C4AD1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Caption Buddy/Caption_Buddy.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XFAVB8X6YL;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Caption Buddy/Info.plist";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "showcase.job.interview.Caption-Buddy";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6C8709282DFAF23B00C4AD1B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = XFAVB8X6YL;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		6C8709292DFAF23B00C4AD1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = XFAVB8X6YL;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		6C87092B2DFAF23B00C4AD1B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XFAVB8X6YL;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "showcase.job.interview.Caption-BuddyTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Caption Buddy.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Caption Buddy";
+			};
+			name = Debug;
+		};
+		6C87092C2DFAF23B00C4AD1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XFAVB8X6YL;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "showcase.job.interview.Caption-BuddyTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Caption Buddy.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Caption Buddy";
+			};
+			name = Release;
+		};
+		6C87092E2DFAF23B00C4AD1B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XFAVB8X6YL;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "showcase.job.interview.Caption-BuddyUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Caption Buddy";
+			};
+			name = Debug;
+		};
+		6C87092F2DFAF23B00C4AD1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XFAVB8X6YL;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "showcase.job.interview.Caption-BuddyUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Caption Buddy";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6C8708F92DFAF23900C4AD1B /* Build configuration list for PBXProject "Caption Buddy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C8709282DFAF23B00C4AD1B /* Debug */,
+				6C8709292DFAF23B00C4AD1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6C8709252DFAF23B00C4AD1B /* Build configuration list for PBXNativeTarget "Caption Buddy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C8709262DFAF23B00C4AD1B /* Debug */,
+				6C8709272DFAF23B00C4AD1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6C87092A2DFAF23B00C4AD1B /* Build configuration list for PBXNativeTarget "Caption BuddyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C87092B2DFAF23B00C4AD1B /* Debug */,
+				6C87092C2DFAF23B00C4AD1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6C87092D2DFAF23B00C4AD1B /* Build configuration list for PBXNativeTarget "Caption BuddyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C87092E2DFAF23B00C4AD1B /* Debug */,
+				6C87092F2DFAF23B00C4AD1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6C8708F62DFAF23900C4AD1B /* Project object */;
+}
