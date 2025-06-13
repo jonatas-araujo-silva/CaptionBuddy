@@ -9,10 +9,10 @@ import SwiftUI
 
 struct RecorderView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Text("Caption Buddy").bold()
     }
 }
 
 #Preview {
-    RecorderView()
+    RecorderViewTest()
 }
