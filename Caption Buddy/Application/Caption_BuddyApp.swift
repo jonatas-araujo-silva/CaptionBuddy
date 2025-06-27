@@ -13,7 +13,7 @@ struct Caption_BuddyApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView()
+            RecorderView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }

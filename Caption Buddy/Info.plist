@@ -6,5 +6,11 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Caption Buddy needs access to the microphone to record audio for your videos and generate captions</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Caption Buddy needs to access speech recognition to automatically generate captions from your video&apos;s audio</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Caption Buddy needs access to the camera to record videos</string>
 </dict>
 </plist>

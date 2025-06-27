@@ -3,7 +3,13 @@ import AVFoundation
 import Speech
 import Lottie
 
-struct MainView: View {
+// MARK: - Main Content View
+struct ContentView: View {
+    
+    init() {
+        UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray
+    }
+
     var body: some View {
         TabView {
             RecorderView()
@@ -18,7 +24,6 @@ struct MainView: View {
                     Text("Library")
                 }
             
-            // MARK: - API Testing Tab
             APITestView()
                 .tabItem {
                     Image(systemName: "ladybug.fill")
@@ -29,7 +34,7 @@ struct MainView: View {
     }
 }
 
-// MARK: - API ViewModelTest
+// MARK: - API Testing ViewModel
 class APITestViewModel: ObservableObject {
     
     @Published var cameraPermissionGranted = false
@@ -38,7 +43,6 @@ class APITestViewModel: ObservableObject {
     @Published var transcriptionResult = ""
     @Published var coreDataStatus = "Ready"
 
-    // Permissions:
     func checkAllPermissions() {
         checkCameraPermission()
         checkMicPermission()
@@ -74,7 +78,7 @@ class APITestViewModel: ObservableObject {
         }
     }
     
-    //SFSpeechRecognizer:
+    // 2. SPEECH-TO-TEXT (SFSpeechRecognizer)
     func runSpeechToTextTest() {
         self.speechRecognitionStatus = "Requesting Auth..."
         self.transcriptionResult = ""
@@ -118,10 +122,7 @@ class APITestViewModel: ObservableObject {
         }
     }
     
-    //CORE DATA:
     func testCoreDataSave() {
-        // Here we would get the managedObjectContext and save a dummy object
-        // Placeholder for the actual implementation in Persistence.swift
         self.coreDataStatus = "Saved dummy video entry."
         print("-> Core Data: Pretended to save a test object.")
     }
@@ -133,22 +134,18 @@ class APITestViewModel: ObservableObject {
 }
 
 
-// MARK: - API ViewTest
+// MARK: - API Testing View
 struct APITestView: View {
-    // instance of our ViewModel
-    // @StateObject ensures it lives for the duration of the view.
     @StateObject private var viewModel = APITestViewModel()
 
     var body: some View {
         NavigationView {
             Form {
-                // Section for Permissions API (AVFoundation)
                 Section(header: Text("1. Permissions (AVFoundation)")) {
                     StatusRow(title: "Camera Access", isGranted: viewModel.cameraPermissionGranted)
                     StatusRow(title: "Microphone Access", isGranted: viewModel.micPermissionGranted)
                 }
                 
-                // Section for Speech-to-Text API (Speech)
                 Section(header: Text("2. Speech-to-Text (Speech Framework)")) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Status: \(viewModel.speechRecognitionStatus)")
@@ -164,7 +161,6 @@ struct APITestView: View {
                     }
                 }
                 
-                // Section for CoreData
                 Section(header: Text("3. Data Storage (CoreData)")) {
                     Text("Status: \(viewModel.coreDataStatus)")
                     HStack {
@@ -174,23 +170,21 @@ struct APITestView: View {
                     }
                 }
                 
-                // Section for Animation (Lottie)
                 Section(header: Text("4. Animation (Lottie)")) {
-                    // LottieView is a custom wrapper I'll create.
-                    // It needs a .lottie file in project.
-                    // placeholder.
                     VStack(alignment: .center) {
                          Text("Lottie Animation Preview")
                              .font(.headline)
-                         // Add a LottieView here
-                         // Example: LottieView(name: "hello_sign")
-                         // For now: a placeholder image.
-                         Image(systemName: "hand.wave.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.purple)
+                             .foregroundStyle(.primary)
+                         
+                         LottieView(name: "hello", loopMode: .loop)
                             .frame(height: 150)
                     }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
+                .listRowInsets(EdgeInsets())
+
             }
             .onAppear(perform: viewModel.checkAllPermissions)
             .navigationTitle("API Testing")
@@ -217,17 +211,6 @@ struct StatusRow: View {
 }
 
 // MARK: - Placeholder Views
-// Temporary views that allow the TabView to compile.
-// I'll replace them with the real feature views later.
-
-struct RecorderViewTest: View {
-    var body: some View {
-        NavigationView {
-            Text("Recorder View Placeholder")
-                .navigationTitle("Recorder")
-        }
-    }
-}
 
 struct VideoLibraryView: View {
     var body: some View {
@@ -241,5 +224,5 @@ struct VideoLibraryView: View {
 
 // MARK: - Preview
 #Preview {
-    MainView()
+    ContentView()
 }
