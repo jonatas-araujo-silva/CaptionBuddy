@@ -210,18 +210,6 @@ struct StatusRow: View {
     }
 }
 
-// MARK: - Placeholder Views
-
-struct VideoLibraryView: View {
-    var body: some View {
-        NavigationView {
-            Text("Video Library Placeholder")
-                .navigationTitle("Library")
-        }
-    }
-}
-
-
 // MARK: - Preview
 #Preview {
     ContentView()

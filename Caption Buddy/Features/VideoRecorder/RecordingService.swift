@@ -33,7 +33,6 @@ class RecordingService: NSObject, ObservableObject {
         }
     }
 
-    // MARK: - Session Configuration
     private func configureSession() {
         session.beginConfiguration()
         session.sessionPreset = .high
@@ -95,52 +94,85 @@ class RecordingService: NSObject, ObservableObject {
     public func startRecording() {
         dataOutputQueue.async {
             guard !self.isRecording else { return }
+            
             let outputURL = self.createNewFileURL()
+            
             do {
                 self.assetWriter = try AVAssetWriter(outputURL: outputURL, fileType: .mov)
             } catch {
                 print("Error: Could not create asset writer: \(error)")
                 return
             }
+            
             let videoSettings: [String: Any] = [ AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey: 1920, AVVideoHeightKey: 1080 ]
             self.assetWriterVideoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
             self.assetWriterVideoInput?.expectsMediaDataInRealTime = true
             if let videoInput = self.assetWriterVideoInput, self.assetWriter?.canAdd(videoInput) == true { self.assetWriter?.add(videoInput) }
+            
             let audioSettings: [String: Any] = [ AVFormatIDKey: kAudioFormatMPEG4AAC, AVNumberOfChannelsKey: 1, AVSampleRateKey: 44100.0, AVEncoderBitRateKey: 64000 ]
             self.assetWriterAudioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
             self.assetWriterAudioInput?.expectsMediaDataInRealTime = true
             if let audioInput = self.assetWriterAudioInput, self.assetWriter?.canAdd(audioInput) == true { self.assetWriter?.add(audioInput) }
+            
             self.sessionAtSourceTime = nil
             self.assetWriter?.startWriting()
-            DispatchQueue.main.async { self.isRecording = true }
+            
+            DispatchQueue.main.async {
+                self.isRecording = true
+            }
         }
     }
 
     public func stopRecording() {
         dataOutputQueue.async {
             guard self.isRecording, let writer = self.assetWriter else { return }
+            
+            self.isRecording = false
+            
             writer.finishWriting {
                 self.sessionAtSourceTime = nil
-                print("Finished writing video to: \(writer.outputURL)")
+                let videoURL = writer.outputURL
+                print("Finished writing video to: \(videoURL)")
+                
+                CaptionService.shared.transcribeVideo(url: videoURL) { result in
+                    switch result {
+                    case .success(let timedCaptions):
+                        DataManager.shared.saveVideo(url: videoURL, timedCaptions: timedCaptions)
+                    case .failure(let error):
+                        print("Transcription failed: \(error.localizedDescription)")
+                    }
+                }
             }
+            
             self.assetWriter = nil
             self.assetWriterVideoInput = nil
             self.assetWriterAudioInput = nil
-            DispatchQueue.main.async { self.isRecording = false }
+            
+            DispatchQueue.main.async {
+                self.isRecording = false
+            }
         }
     }
 }
 
 extension RecordingService: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
+    
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard isRecording, let writer = assetWriter, writer.status == .writing else { return }
+
         let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        
         if sessionAtSourceTime == nil {
             sessionAtSourceTime = presentationTime
             writer.startSession(atSourceTime: presentationTime)
         }
-        if output is AVCaptureVideoDataOutput, let videoInput = assetWriterVideoInput, videoInput.isReadyForMoreMediaData { videoInput.append(sampleBuffer) }
-        if output is AVCaptureAudioDataOutput, let audioInput = assetWriterAudioInput, audioInput.isReadyForMoreMediaData { audioInput.append(sampleBuffer) }
+
+        if output is AVCaptureVideoDataOutput, let videoInput = assetWriterVideoInput, videoInput.isReadyForMoreMediaData {
+            videoInput.append(sampleBuffer)
+        }
+        
+        if output is AVCaptureAudioDataOutput, let audioInput = assetWriterAudioInput, audioInput.isReadyForMoreMediaData {
+            audioInput.append(sampleBuffer)
+        }
     }
 }
-
