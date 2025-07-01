@@ -1,0 +1,32 @@
+[
+    {
+        "text": "Hello",
+        "startTime": 0.6,
+        "duration": 0.8
+    },
+    {
+        "text": "world,",
+        "startTime": 2.4,
+        "duration": 0.7
+    },
+    {
+        "text": "this",
+        "startTime": 3.2,
+        "duration": 0.4
+    },
+    {
+        "text": "is",
+        "startTime": 3.7,
+        "duration": 0.3
+    },
+    {
+        "text": "a",
+        "startTime": 4.1,
+        "duration": 0.2
+    },
+    {
+        "text": "test.",
+        "startTime": 4.4,
+        "duration": 0.6
+    }
+]

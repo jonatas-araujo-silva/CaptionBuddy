@@ -11,12 +11,30 @@ struct PlayerView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            if let player = viewModel.player {
-                VideoPlayer(player: player)
-                    .onAppear { player.play() }
-                    .onDisappear { player.pause() }
-            } else {
-                Text("Error: Could not load video.")
+            ZStack {
+                if let player = viewModel.player {
+                    VideoPlayer(player: player)
+                        .onAppear { player.play() }
+                        .onDisappear { player.pause() }
+                } else {
+                    Text("Error: Could not load video.")
+                }
+                
+                // Appears on top of the video when an animation is triggered.
+                if let animationName = viewModel.animationName {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            LottieView(name: animationName, loopMode: .playOnce)
+                                .frame(width: 150, height: 150)
+                                .background(Color.black.opacity(0.4))
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .transition(.scale.animation(.spring()))
+                                .padding()
+                        }
+                    }
+                }
             }
             
             // -- Synchronized Captions --

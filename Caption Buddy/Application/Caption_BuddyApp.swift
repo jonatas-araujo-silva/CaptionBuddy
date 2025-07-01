@@ -7,7 +7,7 @@ struct Caption_BuddyApp: App {
 
     var body: some Scene {
         WindowGroup {
-            APITestView()
+            ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }

@@ -8,17 +8,34 @@ struct RecorderView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             
-            if let previewLayer = viewModel.previewLayer, viewModel.isSessionReady {
-                VideoPreviewView(layer: previewLayer)
-                    .ignoresSafeArea()
-            }
-
-            // -- UI Overlay -
+            #if targetEnvironment(simulator)
+            // -- SIMULATOR UI --
+            // Shown only when running on the Simulator
             VStack {
-                
+                ErrorView(systemImageName: "display", errorMessage: "Simulator Mode")
+                Text("Tap the button below to generate a sample recording.")
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            #else
+            // -- REAL DEVICE UI --
+            // Shown only when running on a physical device
+            if viewModel.isSessionReady {
+                if let previewLayer = viewModel.previewLayer {
+                    VideoPreviewView(layer: previewLayer)
+                        .ignoresSafeArea()
+                } else {
+                    ErrorView(systemImageName: "video.slash.fill", errorMessage: "Could not create camera preview.")
+                }
+            } else {
+                ErrorView(systemImageName: "exclamationmark.triangle.fill", errorMessage: "Camera Not Available\n\nPlease run on a physical device.")
+            }
+            #endif
+
+            // -- UI Overlay (for Simulator and Device) --
+            VStack {
                 Spacer()
-                
-                // -- RECORD BUTTON --
                 Button(action: {
                     viewModel.toggleRecording()
                 }) {
@@ -40,13 +57,18 @@ struct RecorderView: View {
     }
 }
 
+//A helper view for the real device's camera layer
 struct VideoPreviewView: UIViewRepresentable {
     let layer: AVCaptureVideoPreviewLayer
 
     func makeUIView(context: Context) -> UIView {
         let view = UIView()
+        
         layer.frame = view.bounds
+        layer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(layer)
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
         return view
     }
 
@@ -55,7 +77,27 @@ struct VideoPreviewView: UIViewRepresentable {
     }
 }
 
-// MARK: - Preview
+//A reusable view for displaying error messages / simulator status
+struct ErrorView: View {
+    let systemImageName: String
+    let errorMessage: String
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: systemImageName)
+                .font(.system(size: 60))
+                .foregroundColor(.white.opacity(0.7))
+            
+            Text(errorMessage)
+                .font(.headline)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .padding()
+        }
+    }
+}
+
+
 #Preview {
     RecorderView()
 }
