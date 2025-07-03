@@ -10,7 +10,7 @@ struct RecorderView: View {
             
             #if targetEnvironment(simulator)
             // -- SIMULATOR UI --
-            // Shown only when running on the Simulator
+            // Shown only running on Simulator
             VStack {
                 ErrorView(systemImageName: "display", errorMessage: "Simulator Mode")
                 Text("Tap the button below to generate a sample recording.")
@@ -20,7 +20,7 @@ struct RecorderView: View {
             }
             #else
             // -- REAL DEVICE UI --
-            // Shown only when running on a physical device
+            // Shown only running on a physical device
             if viewModel.isSessionReady {
                 if let previewLayer = viewModel.previewLayer {
                     VideoPreviewView(layer: previewLayer)

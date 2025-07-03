@@ -11,16 +11,26 @@ struct PlayerView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            
+            // -- Video Player with Animation Overlay --
             ZStack {
+                // The base layer is video player
                 if let player = viewModel.player {
                     VideoPlayer(player: player)
                         .onAppear { player.play() }
                         .onDisappear { player.pause() }
                 } else {
-                    Text("Error: Could not load video.")
+                    // Fallback
+                    VStack {
+                        Image(systemName: "video.slash.fill")
+                            .font(.largeTitle)
+                        Text("Error: Could not load video.")
+                            .padding(.top)
+                    }
                 }
                 
-                // Appears on top of the video when an animation is triggered.
+                // Appears on top of the video when an animation is triggered
+                // Only visible when `animationName` is not nil
                 if let animationName = viewModel.animationName {
                     VStack {
                         Spacer()

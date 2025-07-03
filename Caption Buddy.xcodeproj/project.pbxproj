@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6C64092D2DFC6A2F0020E80A /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 6C64092C2DFC6A2F0020E80A /* Lottie */; };
+		6C787C842E16A19100FC331E /* RtcBasic in Frameworks */ = {isa = PBXBuildFile; productRef = 6C787C832E16A19100FC331E /* RtcBasic */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +71,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6C64092D2DFC6A2F0020E80A /* Lottie in Frameworks */,
+				6C787C842E16A19100FC331E /* RtcBasic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -131,6 +133,7 @@
 			name = "Caption Buddy";
 			packageProductDependencies = (
 				6C64092C2DFC6A2F0020E80A /* Lottie */,
+				6C787C832E16A19100FC331E /* RtcBasic */,
 			);
 			productName = "Caption Buddy";
 			productReference = 6C8708FE2DFAF23900C4AD1B /* Caption Buddy.app */;
@@ -216,6 +219,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				6C64092B2DFC6A2F0020E80A /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				6C787C822E16A19100FC331E /* XCRemoteSwiftPackageReference "AgoraRtcEngine_iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6C8708FF2DFAF23900C4AD1B /* Products */;
@@ -594,6 +598,14 @@
 				minimumVersion = 4.5.2;
 			};
 		};
+		6C787C822E16A19100FC331E /* XCRemoteSwiftPackageReference "AgoraRtcEngine_iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AgoraIO/AgoraRtcEngine_iOS.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -601,6 +613,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6C64092B2DFC6A2F0020E80A /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
+		};
+		6C787C832E16A19100FC331E /* RtcBasic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6C787C822E16A19100FC331E /* XCRemoteSwiftPackageReference "AgoraRtcEngine_iOS" */;
+			productName = RtcBasic;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
