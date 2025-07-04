@@ -1,7 +1,7 @@
 import SwiftUI
 import AVKit
 
-/* this is responsible for displaying the video player and, eventually,
+/* Responsible for displaying the video player and eventually,
  * the synchronized captions and Lottie animations.
  */
 

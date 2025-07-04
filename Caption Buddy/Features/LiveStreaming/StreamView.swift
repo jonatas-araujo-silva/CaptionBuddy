@@ -13,90 +13,162 @@ struct StreamView: View {
         NavigationView {
             VStack {
                 if viewModel.isInChannel {
-                    // -- Live View --
+                    // Shown when the user is in a live channel
                     LiveVideoView(viewModel: viewModel)
                 } else {
-                    // -- Pre-Join View --
-                    VStack(spacing: 20) {
-                        Text("Ready to Go Live?")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        
-                        TextField("Enter Channel Name", text: $viewModel.channelName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding()
-                        
-                        Button("Go Live as Broadcaster") {
-                            viewModel.startBroadcast()
-                        }
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        
-                        Button("Join as Audience") {
-                            viewModel.joinAsAudience()
-                        }
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                    }
-                    .padding()
+                    // Shown before joining a channel
+                    PreJoinView(viewModel: viewModel)
                 }
             }
             .navigationTitle("Live Stream")
-        }
+            .navigationBarHidden(viewModel.isInChannel)         }
     }
 }
 
-/* Displays the local and remote video feeds once connected to a channel.
+// Helper view for the screen shown before joining a stream
+struct PreJoinView: View {
+    @ObservedObject var viewModel: StreamViewModel
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Ready to Go Live?")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            TextField("Enter Channel Name", text: $viewModel.channelName)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+            
+            Button("Go Live as Broadcaster") {
+                viewModel.startBroadcast()
+            }
+            .padding()
+            .background(Color.red)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            
+            Button("Join as Audience") {
+                viewModel.joinAsAudience()
+            }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+        }
+        .padding()
+    }
+}
+
+/* Main screen for when a user is in a live session
+ * Displays video feeds and chat interface
  */
 struct LiveVideoView: View {
     
     @ObservedObject var viewModel: StreamViewModel
     
     var body: some View {
-        VStack {
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
-                    ForEach(Array(viewModel.remoteUserViews.keys), id: \.self) { uid in
-                        if let userView = viewModel.remoteUserViews[uid] {
-                            AgoraVideoView(uiView: userView)
-                                .frame(height: 200)
-                                .cornerRadius(10)
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Video grid
+                if viewModel.remoteUserViews.isEmpty {
+                    Spacer()
+                    Text("Waiting for others to join...")
+                        .foregroundColor(.white)
+                    Spacer()
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
+                            ForEach(Array(viewModel.remoteUserViews.keys), id: \.self) { uid in
+                                if let userView = viewModel.remoteUserViews[uid] {
+                                    AgoraVideoView(uiView: userView)
+                                        .frame(height: 200)
+                                        .cornerRadius(10)
+                                }
+                            }
+                        }
+                        .padding()
+                    }
+                }
+                
+                // -- Chat Messages Display --
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(viewModel.messages) { message in
+                                ChatRow(message: message)
+                            }
+                        }
+                        .padding()
+                    }
+                    .onChange(of: viewModel.messages.count) { _, _ in
+                        // Auto-scroll to newest message
+                        if let lastMessage = viewModel.messages.last {
+                            withAnimation {
+                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                            }
                         }
                     }
+                }
+                .frame(maxHeight: 200)
+                .background(Color.black.opacity(0.3))
+                
+                // -- Chat Input Field --
+                HStack {
+                    TextField("Enter message...", text: $viewModel.currentMessageText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    Button("Send") {
+                        viewModel.sendMessage()
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .padding(.horizontal)
                 }
                 .padding()
             }
             
-            Spacer()
-            
-            // Display the local user's video feed
-            AgoraVideoView(setup: viewModel.setupLocalVideo)
-                .frame(width: 150, height: 200)
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray, lineWidth: 2)
-                )
+            // -- UI Overlay for Controls --
+            VStack {
+                HStack {
+                    Spacer()
+                    Button("Leave") {
+                        viewModel.leaveChannel()
+                    }
+                    .padding(8)
+                    .background(Color.red.opacity(0.8))
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
                 .padding()
-            
-            Button("Leave Channel") {
-                viewModel.leaveChannel()
+                Spacer()
             }
-            .padding()
-            .background(Color.gray)
-            .foregroundColor(.white)
-            .cornerRadius(10)
         }
     }
 }
 
-// Wraps the UIViews provided by the Agora SDK,
-struct AgoraVideoView: UIViewRepresentable {
+// --- Dedicated view for a single chat message row ---
+struct ChatRow: View {
+    let message: ChatMessage
     
+    var body: some View {
+        HStack {
+            if message.isFromLocalUser { Spacer() }
+            
+            Text(message.text)
+                .padding(10)
+                .background(message.isFromLocalUser ? Color.blue : Color.gray.opacity(0.6))
+                .foregroundColor(.white)
+                .cornerRadius(12)
+            
+            if !message.isFromLocalUser { Spacer() }
+        }
+    }
+}
+
+
+// -- Generic UIViewRepresentable to wrap the UIViews from Agora --
+struct AgoraVideoView: UIViewRepresentable {
     var uiView: UIView?
     var setup: ((UIView) -> Void)?
 
@@ -109,7 +181,6 @@ struct AgoraVideoView: UIViewRepresentable {
     }
 }
 
-// MARK: - Preview
 #Preview {
     StreamView()
 }
