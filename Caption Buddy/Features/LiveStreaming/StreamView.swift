@@ -1,10 +1,6 @@
 import SwiftUI
 import UIKit
 
-/*
-Main UI for the live streaming feature. It allows users to either
- * start a broadcast or join an existing one as a viewer.
- */
 struct StreamView: View {
     
     @StateObject private var viewModel = StreamViewModel()
@@ -13,19 +9,20 @@ struct StreamView: View {
         NavigationView {
             VStack {
                 if viewModel.isInChannel {
-                    // Shown when the user is in a live channel
+                    // Shown when the user is in a live channel.
                     LiveVideoView(viewModel: viewModel)
                 } else {
-                    // Shown before joining a channel
+                    // Shown before joining a channel.
                     PreJoinView(viewModel: viewModel)
                 }
             }
             .navigationTitle("Live Stream")
-            .navigationBarHidden(viewModel.isInChannel)         }
+            .navigationBarHidden(viewModel.isInChannel)
+        }
     }
 }
 
-// Helper view for the screen shown before joining a stream
+//Helper for the screen shown before joining a stream
 struct PreJoinView: View {
     @ObservedObject var viewModel: StreamViewModel
     
@@ -60,7 +57,7 @@ struct PreJoinView: View {
 }
 
 /* Main screen for when a user is in a live session
- * Displays video feeds and chat interface
+ * Displays video feeds and the chat interface.
  */
 struct LiveVideoView: View {
     
@@ -70,8 +67,8 @@ struct LiveVideoView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                // Video grid
+            // -- Video Grid Area: Background layer --
+            VStack {
                 if viewModel.remoteUserViews.isEmpty {
                     Spacer()
                     Text("Waiting for others to join...")
@@ -91,40 +88,52 @@ struct LiveVideoView: View {
                         .padding()
                     }
                 }
+                Spacer()
+            }
+
+            // -- Chat UI: floats on top of the video grid --
+            VStack {
+                Spacer()
                 
-                // -- Chat Messages Display --
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(viewModel.messages) { message in
-                                ChatRow(message: message)
+                VStack(spacing: 0) {
+                    //Chat Messages
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(viewModel.messages) { message in
+                                    ChatRow(message: message)
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.top)
+                        }
+                        .onChange(of: viewModel.messages.count) { _, _ in
+                            if let lastMessage = viewModel.messages.last {
+                                withAnimation {
+                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
                             }
                         }
-                        .padding()
                     }
-                    .onChange(of: viewModel.messages.count) { _, _ in
-                        // Auto-scroll to newest message
-                        if let lastMessage = viewModel.messages.last {
-                            withAnimation {
-                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                            }
-                        }
-                    }
-                }
-                .frame(maxHeight: 200)
-                .background(Color.black.opacity(0.3))
-                
-                // -- Chat Input Field --
-                HStack {
-                    TextField("Enter message...", text: $viewModel.currentMessageText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
                     
-                    Button("Send") {
-                        viewModel.sendMessage()
+                    // Chat Input Field
+                    HStack {
+                        TextField("Enter message...", text: $viewModel.currentMessageText)
+                            .padding(10)
+                            .background(Color.black.opacity(0.2))
+                            .cornerRadius(15)
+                        
+                        Button("Send") {
+                            viewModel.sendMessage()
+                        }
+                        .buttonStyle(BorderlessButtonStyle())
+                        .padding(.horizontal)
                     }
-                    .buttonStyle(BorderlessButtonStyle())
-                    .padding(.horizontal)
+                    .padding()
                 }
+                .frame(maxHeight: 250)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
                 .padding()
             }
             
@@ -147,7 +156,7 @@ struct LiveVideoView: View {
     }
 }
 
-// --- Dedicated view for a single chat message row ---
+// - Dedicated view for a single chat message row -
 struct ChatRow: View {
     let message: ChatMessage
     
@@ -157,7 +166,7 @@ struct ChatRow: View {
             
             Text(message.text)
                 .padding(10)
-                .background(message.isFromLocalUser ? Color.blue : Color.gray.opacity(0.6))
+                .background(message.isFromLocalUser ? Color.blue.opacity(0.8) : Color.gray.opacity(0.6))
                 .foregroundColor(.white)
                 .cornerRadius(12)
             
@@ -167,7 +176,7 @@ struct ChatRow: View {
 }
 
 
-// -- Generic UIViewRepresentable to wrap the UIViews from Agora --
+// - Generic UIView to wrap the UIViews from Agora -
 struct AgoraVideoView: UIViewRepresentable {
     var uiView: UIView?
     var setup: ((UIView) -> Void)?
