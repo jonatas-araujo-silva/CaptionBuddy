@@ -1,182 +1,208 @@
 import SwiftUI
 import UIKit
 
+// Allows users to start a broadcast or join an existing one
 struct StreamView: View {
     
     @StateObject private var viewModel = StreamViewModel()
     
     var body: some View {
-        NavigationView {
-            VStack {
-                if viewModel.isInChannel {
-                    // Shown when the user is in a live channel.
-                    LiveVideoView(viewModel: viewModel)
-                } else {
-                    // Shown before joining a channel.
-                    PreJoinView(viewModel: viewModel)
-                }
+        ZStack {
+            if viewModel.isInChannel {
+                // Main view for when a user is in live session
+                LiveVideoView(viewModel: viewModel)
+                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+            } else {
+                // View shown before joining a channel
+                PreJoinView(viewModel: viewModel)
+                    .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing)))
             }
-            .navigationTitle("Live Stream")
-            .navigationBarHidden(viewModel.isInChannel)
         }
+        .animation(.default, value: viewModel.isInChannel)
     }
 }
 
-//Helper for the screen shown before joining a stream
+// Helper view for screen shown before joining a stream
 struct PreJoinView: View {
     @ObservedObject var viewModel: StreamViewModel
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Ready to Go Live?")
+        VStack(spacing: 16) {
+            Spacer()
+            
+            Image(systemName: "dot.radiowaves.left.and.right")
+                .font(.system(size: 60))
+                .foregroundColor(.red)
+            
+            Text("Live Stream")
                 .font(.largeTitle)
                 .fontWeight(.bold)
             
-            TextField("Enter Channel Name", text: $viewModel.channelName)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
+            Text("Start a broadcast or join an existing channel as a viewer.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
             
-            Button("Go Live as Broadcaster") {
-                viewModel.startBroadcast()
+            VStack {
+                TextField("Enter Channel Name", text: $viewModel.channelName)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.horizontal)
+            }
+            .padding(.top)
+            
+            Spacer()
+            
+            VStack(spacing: 12) {
+                Button {
+                    viewModel.startBroadcast()
+                } label: {
+                    Label("Go Live as Broadcaster", systemImage: "video.fill")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .controlSize(.large)
+                
+                Button {
+                    viewModel.joinAsAudience()
+                } label: {
+                    Label("Join as Audience", systemImage: "person.2.fill")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
             }
             .padding()
-            .background(Color.red)
-            .foregroundColor(.white)
-            .cornerRadius(10)
-            
-            Button("Join as Audience") {
-                viewModel.joinAsAudience()
-            }
-            .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(10)
         }
-        .padding()
     }
 }
 
-/* Main screen for when a user is in a live session
- * Displays video feeds and the chat interface.
- */
+//Main screen for when a user is in live session
 struct LiveVideoView: View {
     
     @ObservedObject var viewModel: StreamViewModel
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topTrailing) {
             Color.black.ignoresSafeArea()
             
-            // -- Video Grid Area: Background layer --
-            VStack {
-                if viewModel.remoteUserViews.isEmpty {
+            // - Video Grid Area -
+            if viewModel.remoteUserViews.isEmpty {
+                VStack {
                     Spacer()
+                    ProgressView()
                     Text("Waiting for others to join...")
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
+                        .padding(.top)
                     Spacer()
-                } else {
-                    ScrollView {
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
-                            ForEach(Array(viewModel.remoteUserViews.keys), id: \.self) { uid in
-                                if let userView = viewModel.remoteUserViews[uid] {
-                                    AgoraVideoView(uiView: userView)
-                                        .frame(height: 200)
-                                        .cornerRadius(10)
-                                }
+                }
+            } else {
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 4) {
+                        ForEach(Array(viewModel.remoteUserViews.keys), id: \.self) { uid in
+                            if let userView = viewModel.remoteUserViews[uid] {
+                                AgoraVideoView(uiView: userView)
+                                    .aspectRatio(3/4, contentMode: .fill)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
                         }
-                        .padding()
                     }
                 }
-                Spacer()
-            }
-
-            // -- Chat UI: floats on top of the video grid --
-            VStack {
-                Spacer()
-                
-                VStack(spacing: 0) {
-                    //Chat Messages
-                    ScrollViewReader { proxy in
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(viewModel.messages) { message in
-                                    ChatRow(message: message)
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.top)
-                        }
-                        .onChange(of: viewModel.messages.count) { _, _ in
-                            if let lastMessage = viewModel.messages.last {
-                                withAnimation {
-                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Chat Input Field
-                    HStack {
-                        TextField("Enter message...", text: $viewModel.currentMessageText)
-                            .padding(10)
-                            .background(Color.black.opacity(0.2))
-                            .cornerRadius(15)
-                        
-                        Button("Send") {
-                            viewModel.sendMessage()
-                        }
-                        .buttonStyle(BorderlessButtonStyle())
-                        .padding(.horizontal)
-                    }
-                    .padding()
-                }
-                .frame(maxHeight: 250)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .padding()
             }
             
-            // -- UI Overlay for Controls --
+            // - Chat and Controls UI -
             VStack {
-                HStack {
-                    Spacer()
-                    Button("Leave") {
-                        viewModel.leaveChannel()
-                    }
-                    .padding(8)
-                    .background(Color.red.opacity(0.8))
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-                }
-                .padding()
                 Spacer()
+                ChatView(viewModel: viewModel)
             }
+            .ignoresSafeArea(.container, edges: .bottom)
+            
+            // - Leave Button -
+            Button {
+                viewModel.leaveChannel()
+            } label: {
+                Image(systemName: "xmark")
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color.black.opacity(0.5))
+                    .clipShape(Circle())
+            }
+            .padding()
         }
     }
 }
 
-// - Dedicated view for a single chat message row -
+// Dedicated view for chat interface
+struct ChatView: View {
+    @ObservedObject var viewModel: StreamViewModel
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(viewModel.messages) { message in
+                            ChatRow(message: message)
+                        }
+                    }
+                    .padding()
+                }
+                .onChange(of: viewModel.messages.count) {
+                    if let lastMessageID = viewModel.messages.last?.id {
+                        withAnimation { proxy.scrollTo(lastMessageID, anchor: .bottom) }
+                    }
+                }
+            }
+            
+            // Chat Input Field
+            HStack(spacing: 12) {
+                TextField("Send a message...", text: $viewModel.currentMessageText)
+                    .padding(10)
+                    .padding(.leading, 8)
+                    .background(Color.black.opacity(0.25))
+                    .clipShape(Capsule())
+                
+                Button {
+                    viewModel.sendMessage()
+                } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.title)
+                }
+                .disabled(viewModel.currentMessageText.isEmpty)
+            }
+            .padding([.horizontal, .top])
+            .padding(.bottom)
+        }
+        .frame(maxHeight: 300)
+        .background(.ultraThinMaterial)
+    }
+}
+
+
+// - Helper Views -
+
 struct ChatRow: View {
     let message: ChatMessage
     
     var body: some View {
         HStack {
-            if message.isFromLocalUser { Spacer() }
+            if message.isFromLocalUser { Spacer(minLength: 50) }
             
             Text(message.text)
-                .padding(10)
-                .background(message.isFromLocalUser ? Color.blue.opacity(0.8) : Color.gray.opacity(0.6))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(message.isFromLocalUser ? .blue : .secondary.opacity(0.4))
                 .foregroundColor(.white)
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             
-            if !message.isFromLocalUser { Spacer() }
+            if !message.isFromLocalUser { Spacer(minLength: 50) }
         }
     }
 }
 
-
-// - Generic UIView to wrap the UIViews from Agora -
 struct AgoraVideoView: UIViewRepresentable {
     var uiView: UIView?
     var setup: ((UIView) -> Void)?

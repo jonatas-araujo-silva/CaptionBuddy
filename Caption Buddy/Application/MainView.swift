@@ -4,10 +4,10 @@ import Speech
 import Lottie
 
 // MARK: - Main Content View
-struct ContentView: View {
+struct MainView: View {
     
     init() {
-        // Sets the color for icon and text of unselected tabs
+        // Set the color for icon and text of unselected tabs
         // Ensures they are visible against dark backgrounds
         UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray
     }
@@ -41,5 +41,5 @@ struct ContentView: View {
 
 // MARK: - Preview
 #Preview {
-    ContentView()
+    MainView()
 }
