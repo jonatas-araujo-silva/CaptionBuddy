@@ -1,63 +1,64 @@
 import SwiftUI
 import Lottie
 
-/* Reusable SwiftUI component that acts as a wrapper around UIKit's LottieAnimationView
- * Allows to embed Lottie animations within SwiftUI views
- *
- * How to use:
- * LottieView(name: "my_animation_name", loopMode: .loop)
- *
- * Parameters:
- * - name: The filename of the .lottie (or .json) animation file in your asset bundle.
- * - loopMode: How the animation should play (e.g., play once, loop, autoplay).
- * - animationSpeed: The speed at which the animation should play.
- */
-
+// Acts as a wrapper around UIKit's LottieAnimationView. Use Coordinator pattern
+ 
 struct LottieView: UIViewRepresentable {
-    // Name of the Lottie animation file
+    // The name of the Lottie animation file
     var name: String
-    // Loop behavior of the animation
+    // The loop behavior of the animation
     var loopMode: LottieLoopMode = .playOnce
-    // Playback speed of the animation
+    // The playback speed of the animation
     var animationSpeed: CGFloat = 1
 
-    // This view will host the Lottie animation
-    private let animationView = LottieAnimationView()
+    // Creates the Coordinator instance that will manage the LottieAnimationView.
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
 
-    // Creates the initial UIView
+    // Creates the initial UIView. This is called only once.
     func makeUIView(context: UIViewRepresentableContext<LottieView>) -> UIView {
         let view = UIView(frame: .zero)
-
-        // 1. Load the animation by name
-        animationView.animation = LottieAnimation.named(name)
-        // 2. Set the content mode to scale aspect fit
-        animationView.contentMode = .scaleAspectFit
-        // 3. Set the loop mode
-        animationView.loopMode = loopMode
-        // 4. Set the animation speed
-        animationView.animationSpeed = animationSpeed
-        // 5. Play the animation
-        animationView.play()
-
-        // Add the animationView as subview and set up constraints
-        view.addSubview(animationView)
-        animationView.translatesAutoresizingMaskIntoConstraints = false
+        context.coordinator.animationView.contentMode = .scaleAspectFit
+        view.addSubview(context.coordinator.animationView)
         
+        context.coordinator.animationView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            animationView.heightAnchor.constraint(equalTo: view.heightAnchor),
-            animationView.widthAnchor.constraint(equalTo: view.widthAnchor)
+            context.coordinator.animationView.heightAnchor.constraint(equalTo: view.heightAnchor),
+            context.coordinator.animationView.widthAnchor.constraint(equalTo: view.widthAnchor)
         ])
 
         return view
     }
 
-    // Function that is called when SwiftUI state changes, but don't need it for this view
+    // This function is now responsible for telling the Coordinator to update the animation.
     func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<LottieView>) {
-        animationView.play()
+        context.coordinator.parent = self
+        context.coordinator.updateAnimation()
     }
-}
+    
+    /*Makes the LottieView works.
+     * persists for the entire lifecycle of the view, holding onto the LottieAnimationView
+     * instance and preventing it from being recreated unnecessarily.
+     */
+    
+    class Coordinator: NSObject {
+        var parent: LottieView
+        var animationView = LottieAnimationView()
 
-
-#Preview {
-    LottieView(name: "Lottie View")
+        init(_ parent: LottieView) {
+            self.parent = parent
+        }
+        
+        // Called by updateUIView to apply the new animation properties.
+        func updateAnimation() {
+            animationView.animation = LottieAnimation.named(parent.name)
+            animationView.loopMode = parent.loopMode
+            animationView.animationSpeed = parent.animationSpeed
+            
+            // Ensure the animation plays from the beginning.
+            animationView.currentProgress = 0
+            animationView.play()
+        }
+    }
 }

@@ -11,17 +11,12 @@ class PlayerViewModel: ObservableObject {
     
     // MARK: - Published Properties
     @Published var player: AVPlayer?
-    
-    // Holds the index of the currently spoken word
     @Published var currentCaptionIndex: Int? = nil
-    
-    // Holds the name of the Lottie animation to play
     @Published var animationName: String? = nil
     
     // MARK: - Properties
     let recording: VideoRecording
     let captions: [TimedCaption]
-    
     private var timeObserverToken: Any?
     
     // MARK: - Initialization & Deinitialization
@@ -39,8 +34,13 @@ class PlayerViewModel: ObservableObject {
     }
     
     deinit {
+        cleanup()
+        print("PlayerViewModel deinitialized.")
+    }
+    
+    // Called when view disappears to ensure all observers are removed immediately
+    func cleanup() {
         removePeriodicTimeObserver()
-        print("PlayerViewModel deinitialized and time observer removed.")
     }
     
     // MARK: - Time Synchronization
@@ -59,7 +59,6 @@ class PlayerViewModel: ObservableObject {
             }) {
                 if self.currentCaptionIndex != newIndex {
                     self.currentCaptionIndex = newIndex
-                    
                     let currentWord = self.captions[newIndex].text
                     self.animationName = AnimationService.shared.animationName(for: currentWord)
                 }
@@ -74,6 +73,7 @@ class PlayerViewModel: ObservableObject {
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
             timeObserverToken = nil
+            print("Time observer removed.")
         }
     }
 }

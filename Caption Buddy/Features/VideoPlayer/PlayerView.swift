@@ -1,83 +1,76 @@
 import SwiftUI
 import AVKit
 
-/* Responsible for displaying the video player and eventually,
- * the synchronized captions and Lottie animations.
+/* Responsible for displaying the video player, and features:
+ * captions and Lottie animations.
  */
-
 struct PlayerView: View {
     
     @StateObject var viewModel: PlayerViewModel
     
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
+            // --- Video Player ---
+            if let player = viewModel.player {
+                VideoPlayer(player: player)
+                    .onAppear { player.play() }
+                    .onDisappear { player.pause() }
+                    .ignoresSafeArea()
+            } else {
+                VStack {
+                    Image(systemName: "video.slash.fill")
+                        .font(.largeTitle)
+                    Text("Error: Could not load video.")
+                        .padding(.top)
+                }
+            }
             
-            // -- Video Player w/ Animation Overlay --
-            ZStack {
-                if let player = viewModel.player {
-                    VideoPlayer(player: player)
-                        .onAppear { player.play() }
-                        .onDisappear { player.pause() }
-                } else {
-                    VStack {
-                        Image(systemName: "video.slash.fill")
-                            .font(.largeTitle)
-                        Text("Error: Could not load video.")
-                            .padding(.top)
+            // --- UI Overlay ---
+            VStack(spacing: 0) {
+                ZStack {
+                    if let index = viewModel.currentCaptionIndex {
+                        if viewModel.captions.indices.contains(index) {
+                            Text(viewModel.captions[index].text)
+                                .font(.title).bold()
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.black.opacity(0.6))
+                                .clipShape(Capsule())
+                                .transition(.opacity.combined(with: .scale))
+                        }
                     }
                 }
+                .frame(height: 60)
+                .animation(.easeInOut, value: viewModel.currentCaptionIndex)
                 
-                if let animationName = viewModel.animationName {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            LottieView(name: animationName, loopMode: .playOnce)
-                                .frame(width: 150, height: 150)
-                                .background(Color.black.opacity(0.4))
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .transition(.scale.animation(.spring()))
-                                .padding()
-                        }
-                    }
-                }
+                AnimationDisplayView(animationName: viewModel.animationName)
             }
-            
-            // -- Captions --
-            VStack {
-                ScrollViewReader { scrollViewProxy in
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 4) {
-                            ForEach(Array(viewModel.captions.enumerated()), id: \.element.id) { (index, caption) in
-                                Text(caption.text)
-                                    .font(.title2)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(index == viewModel.currentCaptionIndex ? .red : .primary)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        index == viewModel.currentCaptionIndex ? Color.red.opacity(0.2) : Color.clear
-                                    )
-                                    .cornerRadius(6)
-                                    .id(index)
-                            }
-                        }
-                        .padding()
-                    }
-                    .onChange(of: viewModel.currentCaptionIndex) { newIndex, _ in
-                        if let index = newIndex {
-                            withAnimation {
-                                scrollViewProxy.scrollTo(index, anchor: .center)
-                            }
-                        }
-                    }
-                }
-            }
-            .frame(height: 100)
-            .background(Color(.systemGroupedBackground))
-            .shadow(radius: 5)
+            .padding(.bottom)
         }
         .navigationTitle(viewModel.recording.createdAt?.formatted(date: .abbreviated, time: .shortened) ?? "Video")
         .navigationBarTitleDisplayMode(.inline)
+        .background(Color.black)
+        .onDisappear {
+            viewModel.cleanup()
+        }
     }
 }
+
+struct AnimationDisplayView: View {
+    let animationName: String?
+
+    var body: some View {
+        ZStack {
+            if let name = animationName {
+                LottieView(name: name, loopMode: .playOnce)
+                    .transition(.scale.animation(.spring()))
+            } else {
+                Color.clear
+            }
+        }
+        .frame(height: 120)
+        .padding(.bottom, 8)
+    }
+}
+
