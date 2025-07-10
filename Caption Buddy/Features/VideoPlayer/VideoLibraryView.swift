@@ -10,31 +10,44 @@ struct VideoLibraryView: View {
     
     var body: some View {
         NavigationView {
-            if viewModel.recordings.isEmpty {
-                VStack(spacing: 20) {
-                    Image(systemName: "film.stack")
-                        .font(.system(size: 80))
-                        .foregroundColor(.gray)
-                    Text("No Recordings Yet")
-                        .font(.title)
-                        .fontWeight(.bold)
-                    Text("Go to the Record tab to create your first video.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-                .navigationTitle("Library")
-            } else {
-                List {
-                    ForEach(viewModel.recordings) { recording in
-                        NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(recording: recording))) {
-                            VideoRow(recording: recording)
+            VStack {
+                if viewModel.recordings.isEmpty {
+                    // Shown when the library is empty
+                    VStack(spacing: 20) {
+                        Image(systemName: "film.stack")
+                            .font(.system(size: 80))
+                            .foregroundColor(.gray)
+                        Text("No Recordings Yet")
+                            .font(.title)
+                            .fontWeight(.bold)
+                        Text("Tap 'Generate Demos' to load sample videos.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                } else {
+                    // Saved video records
+                    List {
+                        ForEach(viewModel.recordings) { recording in
+                            NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(recording: recording))) {
+                                VideoRow(recording: recording)
+                            }
                         }
                     }
+                    .listStyle(InsetGroupedListStyle())
                 }
-                .listStyle(InsetGroupedListStyle())
-                .navigationTitle("Library")
+            }
+            .navigationTitle("Library")
+            .toolbar {
+                #if DEBUG
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Generate Demos") {
+                        DemoDataGenerator.createPortfolioEntries()
+                        viewModel.fetchRecordings() // Refresh the list
+                    }
+                }
+                #endif
             }
         }
         .onAppear {
@@ -43,13 +56,11 @@ struct VideoLibraryView: View {
     }
 }
 
-// Defines the layout for a single row in the library list.
+// A helper view for a single row in the library list.
 struct VideoRow: View {
     let recording: VideoRecording
     
-    // Generate the preview text
     private var transcriptPreview: String {
-        // Use .captions extension, map each word, and join them with spaces.
         let fullTranscript = recording.captions.map { $0.text }.joined(separator: " ")
         return fullTranscript.isEmpty ? "No transcript available." : fullTranscript
     }
@@ -75,8 +86,6 @@ struct VideoRow: View {
     }
 }
 
-
-// MARK: - Preview
 #Preview {
     VideoLibraryView()
 }

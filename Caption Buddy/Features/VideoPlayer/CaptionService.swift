@@ -56,9 +56,7 @@ class CaptionService {
                 guard let result = result, result.isFinal else { return }
 
                 var timedCaptions: [TimedCaption] = []
-                // Result contains multiple phrases.
                 for segment in result.bestTranscription.segments {
-                    // Each segment contains the word, timestamp, and duration.
                     let caption = TimedCaption(
                         text: segment.substring,
                         startTime: segment.timestamp,

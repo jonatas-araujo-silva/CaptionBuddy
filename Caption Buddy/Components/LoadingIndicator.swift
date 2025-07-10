@@ -1,11 +1,5 @@
-//
-//  LoadingIndicator.swift
-//  Caption Buddy
-//
-//  Created by Jonatas Araujo on 12/06/25.
-//
 
-// A reusable loading spinner
+// Reusable loading spinner
 import SwiftUI
 
 struct LoadingIndicator: View {

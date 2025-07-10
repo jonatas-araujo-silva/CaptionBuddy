@@ -1,7 +1,7 @@
 import Foundation
 
-/* for populating the app with sample data for portfolio demos,
- * specifically when running on the simulator.
+/* for populating the app with mock data for portfolio demos,
+ * when running on the simulator
  */
 
 struct DemoDataGenerator {

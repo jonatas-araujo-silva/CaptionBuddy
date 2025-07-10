@@ -1,9 +1,8 @@
 import SwiftUI
 import Lottie
 
-/*
- * reusable SwiftUI component that acts as a wrapper around UIKit's LottieAnimationView
- * It allows us to embed Lottie animations within our SwiftUI views
+/* Reusable SwiftUI component that acts as a wrapper around UIKit's LottieAnimationView
+ * Allows to embed Lottie animations within SwiftUI views
  *
  * How to use:
  * LottieView(name: "my_animation_name", loopMode: .loop)
@@ -13,18 +12,19 @@ import Lottie
  * - loopMode: How the animation should play (e.g., play once, loop, autoplay).
  * - animationSpeed: The speed at which the animation should play.
  */
+
 struct LottieView: UIViewRepresentable {
-    // The name of the Lottie animation file
+    // Name of the Lottie animation file
     var name: String
-    // The loop behavior of the animation
+    // Loop behavior of the animation
     var loopMode: LottieLoopMode = .playOnce
-    // The playback speed of the animation
+    // Playback speed of the animation
     var animationSpeed: CGFloat = 1
 
-    // This view will host our Lottie animation
+    // This view will host the Lottie animation
     private let animationView = LottieAnimationView()
 
-    // Creates the initial UIView.
+    // Creates the initial UIView
     func makeUIView(context: UIViewRepresentableContext<LottieView>) -> UIView {
         let view = UIView(frame: .zero)
 
@@ -39,7 +39,7 @@ struct LottieView: UIViewRepresentable {
         // 5. Play the animation
         animationView.play()
 
-        // Add the animationView as a subview and set up constraints
+        // Add the animationView as subview and set up constraints
         view.addSubview(animationView)
         animationView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -51,10 +51,8 @@ struct LottieView: UIViewRepresentable {
         return view
     }
 
-    // This function is called when SwiftUI state changes, but we don't need it for this simple view.
+    // Function that is called when SwiftUI state changes, but don't need it for this view
     func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<LottieView>) {
-        // You could add logic here to update the animation if the name or loopMode changes.
-        // For now, we will just have it play again on updates.
         animationView.play()
     }
 }

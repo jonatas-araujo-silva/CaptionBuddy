@@ -1,8 +1,8 @@
 import Foundation
 
 /*
- Codable struct that represents a single segment of a transcription.
- * Holds the spoken word and its start and end time within the video.
+ Codable struct that represents a segment of a transcription
+ * Holds the spoken word and its start and end time within the video
  */
 
 struct TimedCaption: Codable, Identifiable {

@@ -12,15 +12,13 @@ struct PlayerView: View {
     var body: some View {
         VStack(spacing: 0) {
             
-            // -- Video Player with Animation Overlay --
+            // -- Video Player w/ Animation Overlay --
             ZStack {
-                // The base layer is video player
                 if let player = viewModel.player {
                     VideoPlayer(player: player)
                         .onAppear { player.play() }
                         .onDisappear { player.pause() }
                 } else {
-                    // Fallback
                     VStack {
                         Image(systemName: "video.slash.fill")
                             .font(.largeTitle)
@@ -29,8 +27,6 @@ struct PlayerView: View {
                     }
                 }
                 
-                // Appears on top of the video when an animation is triggered
-                // Only visible when `animationName` is not nil
                 if let animationName = viewModel.animationName {
                     VStack {
                         Spacer()
@@ -47,7 +43,7 @@ struct PlayerView: View {
                 }
             }
             
-            // -- Synchronized Captions --
+            // -- Captions --
             VStack {
                 ScrollViewReader { scrollViewProxy in
                     ScrollView(.horizontal, showsIndicators: false) {

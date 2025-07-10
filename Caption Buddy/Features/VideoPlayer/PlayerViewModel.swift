@@ -12,10 +12,10 @@ class PlayerViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var player: AVPlayer?
     
-    // Hold the index of the currently spoken word
+    // Holds the index of the currently spoken word
     @Published var currentCaptionIndex: Int? = nil
     
-    // Hold the name of the Lottie animation to play
+    // Holds the name of the Lottie animation to play
     @Published var animationName: String? = nil
     
     // MARK: - Properties

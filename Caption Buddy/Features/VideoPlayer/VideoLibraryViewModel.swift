@@ -16,7 +16,4 @@ class VideoLibraryViewModel: ObservableObject {
         self.recordings = DataManager.shared.fetchVideoRecordings()
         print("-> Fetched \(recordings.count) video recordings.")
     }
-    
-    //I'll add other methods here later.
-    
 }

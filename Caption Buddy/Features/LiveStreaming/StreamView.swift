@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import AVKit
 
 // Allows users to start a broadcast or join an existing one
 struct StreamView: View {
@@ -80,47 +81,99 @@ struct PreJoinView: View {
     }
 }
 
-//Main screen for when a user is in live session
+// Main screen for when a user is in live session
 struct LiveVideoView: View {
     
     @ObservedObject var viewModel: StreamViewModel
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            Color.black.ignoresSafeArea()
-            
-            // - Video Grid Area -
-            if viewModel.remoteUserViews.isEmpty {
-                VStack {
-                    Spacer()
-                    ProgressView()
-                    Text("Waiting for others to join...")
-                        .foregroundColor(.secondary)
-                        .padding(.top)
-                    Spacer()
-                }
+            // -- Main Video Player --
+            if let player = viewModel.player {
+                VideoPlayer(player: player)
+                    .ignoresSafeArea()
             } else {
-                ScrollView {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 4) {
-                        ForEach(Array(viewModel.remoteUserViews.keys), id: \.self) { uid in
-                            if let userView = viewModel.remoteUserViews[uid] {
-                                AgoraVideoView(uiView: userView)
-                                    .aspectRatio(3/4, contentMode: .fill)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                Color.black.ignoresSafeArea()
+                Text("Loading Stream...").foregroundColor(.white)
+            }
+            
+            // --- UI Overlay ---
+            VStack {
+                // Picture-in-Picture for the local user
+                HStack {
+                    Spacer()
+                    LocalUserVideoView()
+                        .padding()
+                }
+                
+                Spacer()
+                
+                // Holds all the overlay content
+                VStack(spacing: 0) {
+                    
+                    // --- Display only the current caption ---
+                    ZStack {
+                        // Only shown the Text view if there is a current word
+                        if let index = viewModel.currentCaptionIndex {
+                            if viewModel.captions.indices.contains(index) {
+                                Text(viewModel.captions[index].text)
+                                    .font(.title).bold()
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Color.black.opacity(0.6))
+                                    .clipShape(Capsule())
+                                    .transition(.opacity.combined(with: .scale))
                             }
                         }
                     }
+                    .frame(height: 60)
+                    .animation(.easeInOut, value: viewModel.currentCaptionIndex)
+
+
+                    // --- Chat and Animation  ---
+                    ZStack(alignment: .bottom) {
+                        //Chat Messages
+                        ScrollViewReader { proxy in
+                            ScrollView {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    ForEach(viewModel.messages) { message in
+                                        ChatRow(message: message)
+                                    }
+                                }.padding()
+                            }
+                            .onChange(of: viewModel.messages.count) {
+                                if let lastMessageID = viewModel.messages.last?.id {
+                                    withAnimation { proxy.scrollTo(lastMessageID, anchor: .bottom) }
+                                }
+                            }
+                        }
+                        .frame(maxHeight: 100)
+
+                        if let animationName = viewModel.animationName {
+                            LottieView(name: animationName, loopMode: .playOnce)
+                                .frame(height: 80)
+                                .transition(.scale.animation(.spring()))
+                                .padding(.bottom, 8)
+                        }
+                    }
+
+                    // Chat Input
+                    HStack(spacing: 12) {
+                        TextField("Send a message...", text: $viewModel.currentMessageText)
+                            .padding(10).padding(.leading, 8).background(Color.black.opacity(0.25)).clipShape(Capsule())
+                        Button { viewModel.sendMessage() } label: { Image(systemName: "arrow.up.circle.fill").font(.title) }
+                            .disabled(viewModel.currentMessageText.isEmpty)
+                    }
+                    .padding([.horizontal, .top])
+                    .padding(.bottom)
                 }
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .padding(.horizontal)
+                .padding(.bottom)
             }
-            
-            // - Chat and Controls UI -
-            VStack {
-                Spacer()
-                ChatView(viewModel: viewModel)
-            }
-            .ignoresSafeArea(.container, edges: .bottom)
-            
-            // - Leave Button -
+            // --- Leave Button ---
             Button {
                 viewModel.leaveChannel()
             } label: {
@@ -135,69 +188,50 @@ struct LiveVideoView: View {
     }
 }
 
-// Dedicated view for chat interface
-struct ChatView: View {
-    @ObservedObject var viewModel: StreamViewModel
-    
+
+// --- View for the local user's video in the simulator ---
+struct LocalUserVideoView: View {
+    @State private var player: AVPlayer?
+
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
-                        ForEach(viewModel.messages) { message in
-                            ChatRow(message: message)
-                        }
-                    }
-                    .padding()
-                }
-                .onChange(of: viewModel.messages.count) {
-                    if let lastMessageID = viewModel.messages.last?.id {
-                        withAnimation { proxy.scrollTo(lastMessageID, anchor: .bottom) }
-                    }
-                }
+        VStack {
+            if let player = player {
+                VideoPlayer(player: player)
+                    .disabled(true)
+            } else {
+                Color.black.opacity(0.8)
             }
-            
-            // Chat Input Field
-            HStack(spacing: 12) {
-                TextField("Send a message...", text: $viewModel.currentMessageText)
-                    .padding(10)
-                    .padding(.leading, 8)
-                    .background(Color.black.opacity(0.25))
-                    .clipShape(Capsule())
-                
-                Button {
-                    viewModel.sendMessage()
-                } label: {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.title)
-                }
-                .disabled(viewModel.currentMessageText.isEmpty)
-            }
-            .padding([.horizontal, .top])
-            .padding(.bottom)
         }
-        .frame(maxHeight: 300)
-        .background(.ultraThinMaterial)
+        .frame(width: 120, height: 180)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white, lineWidth: 2))
+        .onAppear {
+            if let url = Bundle.main.url(forResource: "SecondVideo_Portfolio", withExtension: "mp4") {
+                let player = AVPlayer(url: url)
+                self.player = player
+                player.isMuted = true
+                player.play()
+                
+                NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: player.currentItem, queue: .main) { _ in
+                    player.seek(to: .zero)
+                    player.play()
+                }
+            }
+        }
     }
 }
 
 
-// - Helper Views -
-
+// --- Helper Views ---
 struct ChatRow: View {
     let message: ChatMessage
-    
     var body: some View {
         HStack {
             if message.isFromLocalUser { Spacer(minLength: 50) }
-            
             Text(message.text)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 12).padding(.vertical, 8)
                 .background(message.isFromLocalUser ? .blue : .secondary.opacity(0.4))
-                .foregroundColor(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-            
+                .foregroundColor(.white).clipShape(RoundedRectangle(cornerRadius: 16))
             if !message.isFromLocalUser { Spacer(minLength: 50) }
         }
     }

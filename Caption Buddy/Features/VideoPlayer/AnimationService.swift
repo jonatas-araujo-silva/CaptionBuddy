@@ -2,29 +2,40 @@ import Foundation
 
 /* Provides a mapping between spoken words and the names of
  * their corresponding Lottie animation files. Acts like a simple dictionary
- * to look up which animation, if any, should be played for a given word.
+ * to look up which animation, if any, should be played for a given word
  */
 
 class AnimationService {
     
     static let shared = AnimationService()
     
-    // The key is the word (lowercase), and value is animation (without json extension).
     private let animationMap: [String: String] = [
-        "hello": "hello",
-        "world": "world_sign",
-        "goodbye": "goodbye_sign",
-        "thanks": "thanks_sign"
+        "hi": "hi",
+        "focus": "focus",
+        "health": "health",
+        "work": "work",
+        "improve": "growth_chart",
+        "productivity": "growth_chart",
+        "find": "find",
+        "love": "love",
+        "success": "success",
+        "you've": "you've"
     ]
     
     private init() {}
     
-    /// Checks if animation exists for a given word.
+    /// Checks if an animation exists for a given word.
     /// - Parameter word: The word to look up.
     /// - Returns: The name of the animation file if a match is found, otherwise nil.
     func animationName(for word: String) -> String? {
-        // Convert the word to lowercase to make the lookup case-insensitive.
-        let lowercasedWord = word.lowercased()
+        
+        // remove common punctuation characters.
+        let cleanedWord = word.trimmingCharacters(in: .punctuationCharacters)
+        
+        // convert the cleaned word to lowercase.
+        let lowercasedWord = cleanedWord.lowercased()
+        
+        // look up the clean, lowercase word in our dictionary.
         return animationMap[lowercasedWord]
     }
 }

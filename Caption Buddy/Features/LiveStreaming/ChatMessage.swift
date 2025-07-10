@@ -1,6 +1,6 @@
 import Foundation
 
-//Represent a single message in the live chat.
+//Represent a single message in the live chat
 
 struct ChatMessage: Identifiable {
     let id = UUID()
