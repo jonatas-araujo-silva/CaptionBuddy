@@ -1,0 +1,32 @@
+[
+    {
+        "text": "I",
+        "startTime": 0.5,
+        "duration": 0.8
+    },
+    {
+        "text": "love",
+        "startTime": 1.5,
+        "duration": 0.2
+    },
+    {
+        "text": "this",
+        "startTime": 1.7,
+        "duration": 0.5
+    },
+    {
+        "text": "great",
+        "startTime": 2.2,
+        "duration": 0.3
+    },
+    {
+        "text": "idea.",
+        "startTime": 2.5,
+        "duration": 0.4
+    },
+    {
+        "text": "idea.",
+        "startTime": 2.9,
+        "duration": 0.8
+    }
+]
