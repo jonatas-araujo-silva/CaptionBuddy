@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import AVKit
 
-// Allows users to start a broadcast or join an existing one
+// Allow users to start a broadcast or join an existing one
 struct StreamView: View {
     
     @StateObject private var viewModel = StreamViewModel()
@@ -10,7 +10,7 @@ struct StreamView: View {
     var body: some View {
         ZStack {
             if viewModel.isInChannel {
-                // Main view for when a user is in live session
+                // Main view for user in live session
                 LiveVideoView(viewModel: viewModel)
                     .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
             } else {
@@ -88,7 +88,7 @@ struct LiveVideoView: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            // -- Main Video Player --
+            // Main Video Player
             if let player = viewModel.player {
                 VideoPlayer(player: player)
                     .ignoresSafeArea()
@@ -97,9 +97,9 @@ struct LiveVideoView: View {
                 Text("Loading Stream...").foregroundColor(.white)
             }
             
-            // --- UI Overlay ---
+            //  UI Overlay
             VStack {
-                // Picture-in-Picture for the local user
+                // Picture-in-Picture for local user
                 HStack {
                     Spacer()
                     LocalUserVideoView()
@@ -108,12 +108,12 @@ struct LiveVideoView: View {
                 
                 Spacer()
                 
-                // Holds all the overlay content
+                // Holds all overlay contents
                 VStack(spacing: 0) {
                     
-                    // --- Display only the current caption ---
+                    //  Display the current caption
                     ZStack {
-                        // Only shown the Text view if there is a current word
+                        // Only shown the Text view if there's a current word
                         if let index = viewModel.currentCaptionIndex {
                             if viewModel.captions.indices.contains(index) {
                                 Text(viewModel.captions[index].text)
@@ -131,7 +131,7 @@ struct LiveVideoView: View {
                     .animation(.easeInOut, value: viewModel.currentCaptionIndex)
 
 
-                    // --- Chat and Animation  ---
+                    // - Chat and Animation  -
                     ZStack(alignment: .bottom) {
                         //Chat Messages
                         ScrollViewReader { proxy in
@@ -173,7 +173,7 @@ struct LiveVideoView: View {
                 .padding(.horizontal)
                 .padding(.bottom)
             }
-            // --- Leave Button ---
+            // Leave Button
             Button {
                 viewModel.leaveChannel()
             } label: {
@@ -189,7 +189,7 @@ struct LiveVideoView: View {
 }
 
 
-// --- View for the local user's video in the simulator ---
+// View for the local user's video in the simulator
 struct LocalUserVideoView: View {
     @State private var player: AVPlayer?
 
@@ -222,7 +222,7 @@ struct LocalUserVideoView: View {
 }
 
 
-// --- Helper Views ---
+//Helper Views
 struct ChatRow: View {
     let message: ChatMessage
     var body: some View {

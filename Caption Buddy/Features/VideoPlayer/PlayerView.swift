@@ -10,7 +10,7 @@ struct PlayerView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // --- Video Player ---
+            //  Video Player 
             if let player = viewModel.player {
                 VideoPlayer(player: player)
                     .onAppear { player.play() }
