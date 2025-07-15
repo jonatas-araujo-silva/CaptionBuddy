@@ -2,12 +2,15 @@ import Foundation
 import AVFoundation
 import Combine
 
+// CONCERNS:
 class RecordingService: NSObject, ObservableObject {
 
-    @Published var session = AVCaptureSession()
+    private let session = AVCaptureSession()
+    
     var previewLayerPublisher = PassthroughSubject<AVCaptureVideoPreviewLayer, Never>()
-    @Published var isConfigured = false
-    @Published var isRecording = false
+    
+    @MainActor @Published var isConfigured = false
+    @MainActor @Published var isRecording = false
 
     private var videoDeviceInput: AVCaptureDeviceInput?
     private var audioDeviceInput: AVCaptureDeviceInput?
@@ -24,6 +27,7 @@ class RecordingService: NSObject, ObservableObject {
     override init() {
         super.init()
         #if !targetEnvironment(simulator)
+        // Dispatch the configuration to background queue.
         sessionQueue.async {
             self.configureSession()
         }
@@ -31,13 +35,17 @@ class RecordingService: NSObject, ObservableObject {
     }
     
     deinit {
-        if session.isRunning {
-            session.stopRunning()
+        sessionQueue.async { [weak self] in
+            guard let self = self else { return }
+            if self.session.isRunning {
+                self.session.stopRunning()
+            }
         }
     }
 
     #if !targetEnvironment(simulator)
     private func configureSession() {
+        //Runs on sessionQueue
         session.beginConfiguration()
         session.sessionPreset = .high
 
@@ -79,9 +87,11 @@ class RecordingService: NSObject, ObservableObject {
         
         self.session.startRunning()
         
-        DispatchQueue.main.async {
-            let previewLayer = AVCaptureVideoPreviewLayer(session: self.session)
-            previewLayer.videoGravity = .resizeAspectFill
+        // Send it to the main thread for the UI
+        let previewLayer = AVCaptureVideoPreviewLayer(session: self.session)
+        previewLayer.videoGravity = .resizeAspectFill
+        
+        Task { @MainActor in
             self.previewLayerPublisher.send(previewLayer)
             self.isConfigured = true
         }
@@ -98,12 +108,8 @@ class RecordingService: NSObject, ObservableObject {
 
     public func startRecording() {
         #if targetEnvironment(simulator)
-        // On simulator, just pretend to be recording by updating the state.
-        DispatchQueue.main.async {
-            self.isRecording = true
-        }
+        Task { @MainActor in self.isRecording = true }
         #else
-        // --- REAL DEVICE LOGIC ---
         dataOutputQueue.async {
             guard !self.isRecording else { return }
             let outputURL = self.createNewFileURL()
@@ -123,51 +129,45 @@ class RecordingService: NSObject, ObservableObject {
             if let audioInput = self.assetWriterAudioInput, self.assetWriter?.canAdd(audioInput) == true { self.assetWriter?.add(audioInput) }
             self.sessionAtSourceTime = nil
             self.assetWriter?.startWriting()
-            DispatchQueue.main.async {
+            
+            Task { @MainActor in
                 self.isRecording = true
             }
         }
         #endif
     }
 
-    public func stopRecording() {
+    public func stopRecording() async {
         #if targetEnvironment(simulator)
-        // On simulator, stop "pretending" and then generate the sample.
-        DispatchQueue.main.async {
-            self.isRecording = false
-        }
+        await MainActor.run { self.isRecording = false }
         print("SIMULATOR: Generating sample recording.")
-        generateSampleRecording()
+        await generateSampleRecording()
         #else
-        // --- REAL DEVICE LOGIC ---
-        dataOutputQueue.async {
-            guard self.isRecording, let writer = self.assetWriter else { return }
-            self.isRecording = false
-            writer.finishWriting {
-                self.sessionAtSourceTime = nil
-                let videoURL = writer.outputURL
-                print("Finished writing video to: \(videoURL)")
-                CaptionService.shared.transcribeVideo(url: videoURL) { result in
-                    switch result {
-                    case .success(let timedCaptions):
-                        DataManager.shared.saveVideo(url: videoURL, timedCaptions: timedCaptions)
-                    case .failure(let error):
-                        print("Transcription failed: \(error.localizedDescription)")
-                    }
-                }
-            }
-            self.assetWriter = nil
-            self.assetWriterVideoInput = nil
-            self.assetWriterAudioInput = nil
-            DispatchQueue.main.async {
-                self.isRecording = false
-            }
+        await MainActor.run { self.isRecording = false }
+        
+        guard let writer = self.assetWriter else { return }
+        let videoURL = writer.outputURL
+        
+        await writer.finish()
+        
+        print("Finished writing video to: \(videoURL)")
+        
+        let result = await CaptionService.shared.transcribeVideo(url: videoURL)
+        switch result {
+        case .success(let timedCaptions):
+            await DataManager.shared.saveVideo(url: videoURL, timedCaptions: timedCaptions)
+        case .failure(let error):
+            print("Transcription failed: \(error.localizedDescription)")
         }
+        
+        self.assetWriter = nil
+        self.assetWriterVideoInput = nil
+        self.assetWriterAudioInput = nil
         #endif
     }
     
     #if targetEnvironment(simulator)
-    private func generateSampleRecording() {
+    private func generateSampleRecording() async {
         guard let videoURL = Bundle.main.url(forResource: "sample_video", withExtension: "mp4"),
               let captionsURL = Bundle.main.url(forResource: "sample_captions", withExtension: "json") else {
             print("❌ SIMULATOR ERROR: Could not find sample_video.mp4 or sample_captions.json in the project Resources.")
@@ -178,7 +178,7 @@ class RecordingService: NSObject, ObservableObject {
             let captionsData = try Data(contentsOf: captionsURL)
             let decoder = JSONDecoder()
             let timedCaptions = try decoder.decode([TimedCaption].self, from: captionsData)
-            DataManager.shared.saveVideo(url: videoURL, timedCaptions: timedCaptions)
+            await DataManager.shared.saveVideo(url: videoURL, timedCaptions: timedCaptions)
         } catch {
             print("❌ SIMULATOR ERROR: Failed to decode sample captions JSON: \(error)")
         }

@@ -2,6 +2,7 @@ import Foundation
 import AVFoundation
 import Combine
 
+@MainActor
 class RecorderViewModel: ObservableObject {
     
     private let recordingService = RecordingService()
@@ -12,9 +13,8 @@ class RecorderViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    // MARK: - Initialization
     init() {
-        // Subscribe to previewLayerPublisher
+        // Subscribe to the previewLayerPublisher from the service.
         recordingService.previewLayerPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] layer in
@@ -22,22 +22,22 @@ class RecorderViewModel: ObservableObject {
             }
             .store(in: &cancellables)
             
-        // Subscribe to isConfigured property
+        // Subscribe to the isConfigured property from the service.
         recordingService.$isConfigured
             .receive(on: DispatchQueue.main)
             .assign(to: \.isSessionReady, on: self)
             .store(in: &cancellables)
             
-        // Subscribe to isRecording property
+        // Subscribe to the isRecording property from the service.
         recordingService.$isRecording
             .receive(on: DispatchQueue.main)
             .assign(to: \.isRecording, on: self)
             .store(in: &cancellables)
     }
     
-    func toggleRecording() {
+    func toggleRecording() async {
         if isRecording {
-            recordingService.stopRecording()
+            await recordingService.stopRecording()
         } else {
             recordingService.startRecording()
         }

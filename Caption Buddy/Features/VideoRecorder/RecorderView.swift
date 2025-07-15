@@ -10,7 +10,6 @@ struct RecorderView: View {
             
             #if targetEnvironment(simulator)
             // -- SIMULATOR UI --
-            // Shown only running on Simulator
             VStack {
                 ErrorView(systemImageName: "display", errorMessage: "Simulator Mode")
                 Text("Tap the button below to generate a sample recording.")
@@ -20,7 +19,6 @@ struct RecorderView: View {
             }
             #else
             // -- REAL DEVICE UI --
-            // Shown only running on a physical device
             if viewModel.isSessionReady {
                 if let previewLayer = viewModel.previewLayer {
                     VideoPreviewView(layer: previewLayer)
@@ -37,7 +35,9 @@ struct RecorderView: View {
             VStack {
                 Spacer()
                 Button(action: {
-                    viewModel.toggleRecording()
+                    Task {
+                        await viewModel.toggleRecording()
+                    }
                 }) {
                     ZStack {
                         Circle()

@@ -1,9 +1,9 @@
 import SwiftUI
+import AVFoundation
 
 /* Displays a list of all video recordings that have been saved
- * to Core Data. It uses the VideoLibraryViewModel to fetch the data.
+ * to Core Data.
  */
-
 struct VideoLibraryView: View {
     
     @StateObject private var viewModel = VideoLibraryViewModel()
@@ -12,7 +12,7 @@ struct VideoLibraryView: View {
         NavigationView {
             VStack {
                 if viewModel.recordings.isEmpty {
-                    // Shown when the library is empty
+                    // empty state view
                     VStack(spacing: 20) {
                         Image(systemName: "film.stack")
                             .font(.system(size: 80))
@@ -27,7 +27,7 @@ struct VideoLibraryView: View {
                             .padding(.horizontal)
                     }
                 } else {
-                    // Saved video records
+                    // List of saved video recordings.
                     List {
                         ForEach(viewModel.recordings) { recording in
                             NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(recording: recording))) {
@@ -43,8 +43,10 @@ struct VideoLibraryView: View {
                 #if DEBUG
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Generate Demos") {
-                        DemoDataGenerator.createPortfolioEntries()
-                        viewModel.fetchRecordings() // Refresh the list
+                        Task {
+                            await DemoDataGenerator.createPortfolioEntries()
+                            viewModel.fetchRecordings()
+                        }
                     }
                 }
                 #endif
@@ -56,7 +58,11 @@ struct VideoLibraryView: View {
     }
 }
 
-// A helper view for a single row in the library list.
+/*
+ * VideoRow
+ *
+ * A helper view for a single row in the library list, now using a thumbnail.
+ */
 struct VideoRow: View {
     let recording: VideoRecording
     
@@ -66,15 +72,16 @@ struct VideoRow: View {
     }
     
     var body: some View {
-        HStack {
-            Image(systemName: "video.badge.waveform")
-                .font(.largeTitle)
-                .foregroundColor(.red)
-                .frame(width: 60)
+        HStack(spacing: 16) {
+            VideoThumbnailView(videoURL: recording.videoURL)
+                .frame(width: 80, height: 60)
+                .background(Color.secondary.opacity(0.2))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(recording.createdAt ?? Date(), style: .date)
                     .fontWeight(.semibold)
+                    .font(.headline)
                 
                 Text(transcriptPreview)
                     .font(.subheadline)
@@ -85,6 +92,50 @@ struct VideoRow: View {
         .padding(.vertical, 8)
     }
 }
+
+struct VideoThumbnailView: View {
+    let videoURL: URL?
+    
+    @State private var thumbnailImage: UIImage? = nil
+    
+    var body: some View {
+        ZStack {
+            if let image = thumbnailImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                // Show a placeholder while the thumbnail is loading.
+                ProgressView()
+            }
+        }
+        .onAppear(perform: generateThumbnail)
+    }
+    
+    private func generateThumbnail() {
+        guard let url = videoURL else { return }
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            let asset = AVURLAsset(url: url)
+            let imageGenerator = AVAssetImageGenerator(asset: asset)
+            imageGenerator.appliesPreferredTrackTransform = true
+            
+            let time = CMTime(seconds: 1, preferredTimescale: 600)
+            
+            do {
+                let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+                let uiImage = UIImage(cgImage: cgImage)
+                
+                DispatchQueue.main.async {
+                    self.thumbnailImage = uiImage
+                }
+            } catch {
+                print("❌ Error generating thumbnail: \(error.localizedDescription)")
+            }
+        }
+    }
+}
+
 
 #Preview {
     VideoLibraryView()

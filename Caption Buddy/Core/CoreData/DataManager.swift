@@ -3,18 +3,18 @@ import CoreData
 
 class DataManager {
     
-    static let shared = DataManager()
+    static let shared = DataManager(container: PersistenceController.shared.container)
     private let container: NSPersistentContainer
     private var viewContext: NSManagedObjectContext {
         return container.viewContext
     }
     
-    private init() {
-        container = PersistenceController.shared.container
+    init(container: NSPersistentContainer) {
+        self.container = container
     }
     
-    /// - Parameters:
-    func saveVideo(url: URL, timedCaptions: [TimedCaption]) {
+    // Performs work on the container's background context
+    func saveVideo(url: URL, timedCaptions: [TimedCaption]) async {
         let newVideo = VideoRecording(context: viewContext)
         
         newVideo.id = UUID()
@@ -29,7 +29,7 @@ class DataManager {
             newVideo.timedCaptionsData = nil
         }
         
-        saveContext()
+        await saveContext()
         print("✅ Successfully saved video record with timed captions to Core Data.")
     }
     
@@ -46,11 +46,13 @@ class DataManager {
         }
     }
     
-    private func saveContext() {
+    private func saveContext() async {
         guard viewContext.hasChanges else { return }
         
         do {
-            try viewContext.save()
+            try await viewContext.perform {
+                try self.viewContext.save()
+            }
         } catch {
             let nsError = error as NSError
             fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
