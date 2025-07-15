@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import AVKit
 
-// Allow users to start a broadcast or join an existing one
+// Allows users to start a broadcast or join an existing one
 struct StreamView: View {
     
     @StateObject private var viewModel = StreamViewModel()
@@ -10,7 +10,7 @@ struct StreamView: View {
     var body: some View {
         ZStack {
             if viewModel.isInChannel {
-                // Main view for user in live session
+                // Main view for when a user is in live session
                 LiveVideoView(viewModel: viewModel)
                     .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
             } else {
@@ -30,53 +30,22 @@ struct PreJoinView: View {
     var body: some View {
         VStack(spacing: 16) {
             Spacer()
-            
-            Image(systemName: "dot.radiowaves.left.and.right")
-                .font(.system(size: 60))
-                .foregroundColor(.red)
-            
-            Text("Live Stream")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            Text("Start a broadcast or join an existing channel as a viewer.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            
+            Image(systemName: "dot.radiowaves.left.and.right").font(.system(size: 60)).foregroundColor(.red)
+            Text("Live Stream").font(.largeTitle).fontWeight(.bold)
+            Text("Start a broadcast or join an existing channel as a viewer.").font(.subheadline).foregroundColor(.secondary).multilineTextAlignment(.center).padding(.horizontal)
             VStack {
                 TextField("Enter Channel Name", text: $viewModel.channelName)
-                    .textFieldStyle(.roundedBorder)
-                    .padding(.horizontal)
-            }
-            .padding(.top)
-            
+                    .textFieldStyle(.roundedBorder).padding(.horizontal)
+            }.padding(.top)
             Spacer()
-            
             VStack(spacing: 12) {
-                Button {
-                    viewModel.startBroadcast()
-                } label: {
-                    Label("Go Live as Broadcaster", systemImage: "video.fill")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
-                .controlSize(.large)
-                
-                Button {
-                    viewModel.joinAsAudience()
-                } label: {
-                    Label("Join as Audience", systemImage: "person.2.fill")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-            }
-            .padding()
+                Button { viewModel.startBroadcast() } label: {
+                    Label("Go Live as Broadcaster", systemImage: "video.fill").fontWeight(.semibold).frame(maxWidth: .infinity)
+                }.buttonStyle(.borderedProminent).tint(.red).controlSize(.large)
+                Button { viewModel.joinAsAudience() } label: {
+                    Label("Join as Audience", systemImage: "person.2.fill").fontWeight(.semibold).frame(maxWidth: .infinity)
+                }.buttonStyle(.bordered).controlSize(.large)
+            }.padding()
         }
     }
 }
@@ -87,109 +56,51 @@ struct LiveVideoView: View {
     @ObservedObject var viewModel: StreamViewModel
     
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            // Main Video Player
-            if let player = viewModel.player {
-                VideoPlayer(player: player)
-                    .ignoresSafeArea()
-            } else {
-                Color.black.ignoresSafeArea()
-                Text("Loading Stream...").foregroundColor(.white)
-            }
-            
-            //  UI Overlay
-            VStack {
-                // Picture-in-Picture for local user
+        // Separates the video area from the control panel.
+        VStack(spacing: 0) {
+            // --- Top Section: Video Player Area ---
+            ZStack(alignment: .top) {
+                // Main Video Player
+                if let player = viewModel.player {
+                    VideoPlayer(player: player)
+                } else {
+                    Color.black
+                    Text("Loading Stream...").foregroundColor(.white)
+                }
+                
+                // Overlays for the video area (PiP, controls)
                 HStack {
-                    Spacer()
-                    LocalUserVideoView()
-                        .padding()
-                }
-                
-                Spacer()
-                
-                // Holds all overlay contents
-                VStack(spacing: 0) {
-                    
-                    //  Display the current caption
-                    ZStack {
-                        // Only shown the Text view if there's a current word
-                        if let index = viewModel.currentCaptionIndex {
-                            if viewModel.captions.indices.contains(index) {
-                                Text(viewModel.captions[index].text)
-                                    .font(.title).bold()
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(Color.black.opacity(0.6))
-                                    .clipShape(Capsule())
-                                    .transition(.opacity.combined(with: .scale))
-                            }
-                        }
+                    // Participant Count
+                    HStack(spacing: 4) {
+                        Image(systemName: "person.2.fill")
+                        Text("\(viewModel.participantCount)")
                     }
-                    .frame(height: 60)
-                    .animation(.easeInOut, value: viewModel.currentCaptionIndex)
-
-
-                    // - Chat and Animation  -
-                    ZStack(alignment: .bottom) {
-                        //Chat Messages
-                        ScrollViewReader { proxy in
-                            ScrollView {
-                                VStack(alignment: .leading, spacing: 10) {
-                                    ForEach(viewModel.messages) { message in
-                                        ChatRow(message: message)
-                                    }
-                                }.padding()
-                            }
-                            .onChange(of: viewModel.messages.count) {
-                                if let lastMessageID = viewModel.messages.last?.id {
-                                    withAnimation { proxy.scrollTo(lastMessageID, anchor: .bottom) }
-                                }
-                            }
-                        }
-                        .frame(maxHeight: 100)
-
-                        if let animationName = viewModel.animationName {
-                            LottieView(name: animationName, loopMode: .playOnce)
-                                .frame(height: 80)
-                                .transition(.scale.animation(.spring()))
-                                .padding(.bottom, 8)
-                        }
-                    }
-
-                    // Chat Input
-                    HStack(spacing: 12) {
-                        TextField("Send a message...", text: $viewModel.currentMessageText)
-                            .padding(10).padding(.leading, 8).background(Color.black.opacity(0.25)).clipShape(Capsule())
-                        Button { viewModel.sendMessage() } label: { Image(systemName: "arrow.up.circle.fill").font(.title) }
-                            .disabled(viewModel.currentMessageText.isEmpty)
-                    }
-                    .padding([.horizontal, .top])
-                    .padding(.bottom)
-                }
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .padding(.horizontal)
-                .padding(.bottom)
-            }
-            // Leave Button
-            Button {
-                viewModel.leaveChannel()
-            } label: {
-                Image(systemName: "xmark")
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                     .padding(8)
                     .background(Color.black.opacity(0.5))
-                    .clipShape(Circle())
+                    .clipShape(Capsule())
+                    
+                    Spacer()
+                    
+                    // Leave Button
+                    Button { viewModel.leaveChannel() } label: {
+                        Image(systemName: "xmark").foregroundColor(.white).padding(8)
+                            .background(Color.red.opacity(0.8)).clipShape(Circle())
+                    }
+                }
+                .padding()
             }
-            .padding()
+            .ignoresSafeArea(.container, edges: .top)
+
+            // --- Bottom Section: Captions and Chat Panel ---
+            CaptionsAndChatView(viewModel: viewModel)
         }
+        .background(Color.black.ignoresSafeArea())
     }
 }
 
-
-// View for the local user's video in the simulator
+// --- A dedicated view for the local user's video in the simulator ---
 struct LocalUserVideoView: View {
     @State private var player: AVPlayer?
 
@@ -221,17 +132,92 @@ struct LocalUserVideoView: View {
     }
 }
 
+// --- A dedicated view for the captions and chat UI ---
+struct CaptionsAndChatView: View {
+    @ObservedObject var viewModel: StreamViewModel
 
-//Helper Views
+    var body: some View {
+        VStack(spacing: 0) {
+            // --- Current Spoken Word ---
+            ZStack {
+                if let index = viewModel.currentCaptionIndex, viewModel.captions.indices.contains(index) {
+                    Text(viewModel.captions[index].text)
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.5))
+                        .clipShape(Capsule())
+                        .transition(.opacity.combined(with: .scale))
+                }
+            }
+            .frame(height: 60)
+            .animation(.easeInOut, value: viewModel.currentCaptionIndex)
+            
+            // --- Animation and Chat Area ---
+            ZStack(alignment: .bottom) {
+                // Chat Messages
+                ChatView(viewModel: viewModel)
+                
+                // Lottie Animation (overlays the chat)
+                if let animationName = viewModel.animationName {
+                    LottieView(name: animationName, loopMode: .playOnce)
+                        .frame(height: 80)
+                        .transition(.scale.animation(.easeInOut(duration: 0.2)))
+                        .padding(.bottom, 60)
+                }
+            }
+        }
+        .padding(.top)
+        .background(.ultraThinMaterial)
+    }
+}
+
+struct ChatView: View {
+    @ObservedObject var viewModel: StreamViewModel
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Divider() 
+            
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(viewModel.messages) { message in
+                            ChatRow(message: message)
+                        }
+                    }.padding()
+                }
+                .onChange(of: viewModel.messages.count) {
+                    if let lastMessageID = viewModel.messages.last?.id {
+                        withAnimation { proxy.scrollTo(lastMessageID, anchor: .bottom) }
+                    }
+                }
+            }
+            .frame(maxHeight: 120)
+            
+            HStack(spacing: 12) {
+                TextField("Send a message...", text: $viewModel.currentMessageText)
+                    .padding(10).padding(.leading, 8).background(Color.black.opacity(0.1)).clipShape(Capsule())
+                Button { viewModel.sendMessage() } label: { Image(systemName: "arrow.up.circle.fill").font(.title) }
+                .disabled(viewModel.currentMessageText.isEmpty)
+            }
+            .padding()
+        }
+    }
+}
+
 struct ChatRow: View {
     let message: ChatMessage
     var body: some View {
         HStack {
             if message.isFromLocalUser { Spacer(minLength: 50) }
             Text(message.text)
-                .padding(.horizontal, 12).padding(.vertical, 8)
-                .background(message.isFromLocalUser ? .blue : .secondary.opacity(0.4))
-                .foregroundColor(.white).clipShape(RoundedRectangle(cornerRadius: 16))
+                .font(.footnote)
+                .padding(.horizontal, 10).padding(.vertical, 6)
+                .background(message.isFromLocalUser ? Color.blue : Color(uiColor: .systemGray4))
+                .foregroundColor(message.isFromLocalUser ? .white : .primary)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
             if !message.isFromLocalUser { Spacer(minLength: 50) }
         }
     }

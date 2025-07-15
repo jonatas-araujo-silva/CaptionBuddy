@@ -18,24 +18,28 @@ class StreamViewModel: ObservableObject {
     @Published var currentMessageText: String = ""
     
     @Published var player: AVQueuePlayer?
+    
     @Published var captions: [TimedCaption] = []
     @Published var currentCaptionIndex: Int? = nil
     @Published var animationName: String? = nil
+    
+    @Published var participantCount: Int = 0
     
     // MARK: - Private Properties
     private let streamingService = StreamingService()
     private var cancellables = Set<AnyCancellable>()
     private var timeObserverToken: Any?
-    
-    // Properties to manage the video sequence
+    private var firstPlayerItem: AVPlayerItem?
     private var firstVideoCaptions: [TimedCaption] = []
     private var secondVideoCaptions: [TimedCaption] = []
-    private var firstPlayerItem: AVPlayerItem?
     
     init() {
         streamingService.$remoteUserViews
             .receive(on: DispatchQueue.main)
-            .assign(to: \.remoteUserViews, on: self)
+            .sink { [weak self] remoteViews in
+                self?.remoteUserViews = remoteViews
+                self?.participantCount = remoteViews.count + 1
+            }
             .store(in: &cancellables)
             
         streamingService.chatMessagePublisher
@@ -73,6 +77,7 @@ class StreamViewModel: ObservableObject {
         player?.removeAllItems()
         player = nil
         captions.removeAll()
+        participantCount = 0 // Reset participant count
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -86,7 +91,6 @@ class StreamViewModel: ObservableObject {
     // MARK: - Private Caption & Timing Logic
     
     private func setupConversationPlayer() {
-        //load all assets
         guard let videoURL1 = Bundle.main.url(forResource: "FirstVideo_Portfolio", withExtension: "mp4"),
               let captionsURL1 = Bundle.main.url(forResource: "Caption_FirstVideo_Portfolio", withExtension: "json"),
               let videoURL2 = Bundle.main.url(forResource: "SecondVideo_Portfolio", withExtension: "mp4"),
@@ -95,7 +99,6 @@ class StreamViewModel: ObservableObject {
             return
         }
         
-        //decode caption files
         do {
             let data1 = try Data(contentsOf: captionsURL1)
             self.firstVideoCaptions = try JSONDecoder().decode([TimedCaption].self, from: data1)
@@ -107,16 +110,13 @@ class StreamViewModel: ObservableObject {
             return
         }
         
-        // create player items and the queue
         self.firstPlayerItem = AVPlayerItem(url: videoURL1)
         let secondPlayerItem = AVPlayerItem(url: videoURL2)
         self.player = AVQueuePlayer(items: [firstPlayerItem!, secondPlayerItem])
         
-        // set initial state
         self.captions = firstVideoCaptions
         addPeriodicTimeObserver()
         
-        // observe when the first video finishes playing
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(firstVideoDidFinish),
                                                name: .AVPlayerItemDidPlayToEndTime,
@@ -125,10 +125,8 @@ class StreamViewModel: ObservableObject {
         self.player?.play()
     }
     
-    // Called when the first video ends.
     @objc private func firstVideoDidFinish() {
         print("First video finished. Switching to second video captions.")
-        //switch the active captions to the second video's data.
         self.captions = secondVideoCaptions
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: firstPlayerItem)
     }
@@ -138,7 +136,6 @@ class StreamViewModel: ObservableObject {
         timeObserverToken = player?.addPeriodicTimeObserver(forInterval: timeInterval, queue: .main) { [weak self] time in
             guard let self = self, let currentItem = self.player?.currentItem else { return }
             
-            // get the time relative to the currently playing item
             let currentTime = currentItem.currentTime().seconds
             
             if let newIndex = self.captions.firstIndex(where: { caption in
