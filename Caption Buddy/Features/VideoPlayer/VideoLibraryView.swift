@@ -1,9 +1,8 @@
 import SwiftUI
 import AVFoundation
 
-/* Displays a list of all video recordings that have been saved
- * to Core Data.
- */
+// Displays a list of all video recordings saved in Core Data
+
 struct VideoLibraryView: View {
     
     @StateObject private var viewModel = VideoLibraryViewModel()
@@ -12,7 +11,6 @@ struct VideoLibraryView: View {
         NavigationView {
             VStack {
                 if viewModel.recordings.isEmpty {
-                    // empty state view
                     VStack(spacing: 20) {
                         Image(systemName: "film.stack")
                             .font(.system(size: 80))
@@ -27,11 +25,16 @@ struct VideoLibraryView: View {
                             .padding(.horizontal)
                     }
                 } else {
-                    // List of saved video recordings.
+                    // Saved video recordings
                     List {
                         ForEach(viewModel.recordings) { recording in
                             NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(recording: recording))) {
                                 VideoRow(recording: recording)
+                            }
+                        }
+                        .onDelete { indexSet in
+                            Task {
+                                await viewModel.delete(at: indexSet)
                             }
                         }
                     }
@@ -58,11 +61,7 @@ struct VideoLibraryView: View {
     }
 }
 
-/*
- * VideoRow
- *
- * A helper view for a single row in the library list, now using a thumbnail.
- */
+//Helper view for a single row in library list, now using a thumbnail
 struct VideoRow: View {
     let recording: VideoRecording
     
@@ -93,6 +92,7 @@ struct VideoRow: View {
     }
 }
 
+//Dedicated view that async generate/displays a thumbnail
 struct VideoThumbnailView: View {
     let videoURL: URL?
     
@@ -105,7 +105,6 @@ struct VideoThumbnailView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             } else {
-                // Show a placeholder while the thumbnail is loading.
                 ProgressView()
             }
         }
@@ -116,10 +115,11 @@ struct VideoThumbnailView: View {
         guard let url = videoURL else { return }
         
         DispatchQueue.global(qos: .userInitiated).async {
-            let asset = AVURLAsset(url: url)
+            let asset = AVAsset(url: url)
             let imageGenerator = AVAssetImageGenerator(asset: asset)
             imageGenerator.appliesPreferredTrackTransform = true
             
+            // Generate an image at the 1 second mark of the video
             let time = CMTime(seconds: 1, preferredTimescale: 600)
             
             do {

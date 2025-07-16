@@ -1,10 +1,17 @@
 import Foundation
 import CoreData
 
+//Responsible for all interactions with Core Data
+
 class DataManager {
     
+    // Shared singleton instance
     static let shared = DataManager(container: PersistenceController.shared.container)
+    
+    // Reference to Core Data persistence container
     private let container: NSPersistentContainer
+    
+    // Main view context for performing database operations
     private var viewContext: NSManagedObjectContext {
         return container.viewContext
     }
@@ -13,7 +20,7 @@ class DataManager {
         self.container = container
     }
     
-    // Performs work on the container's background context
+    /// Saves a new video recording and its timed captions to database.
     func saveVideo(url: URL, timedCaptions: [TimedCaption]) async {
         let newVideo = VideoRecording(context: viewContext)
         
@@ -33,8 +40,10 @@ class DataManager {
         print("✅ Successfully saved video record with timed captions to Core Data.")
     }
     
+    /// Fetches all saved video recordings from Core Data.
     func fetchVideoRecordings() -> [VideoRecording] {
         let request: NSFetchRequest<VideoRecording> = VideoRecording.fetchRequest()
+        
         let sortDescriptor = NSSortDescriptor(keyPath: \VideoRecording.createdAt, ascending: false)
         request.sortDescriptors = [sortDescriptor]
         
@@ -46,6 +55,15 @@ class DataManager {
         }
     }
     
+    /// Deletes a given VideoRecording object from the Core Data store.
+    /// - Parameter recording: The `VideoRecording` managed object to delete.
+    func delete(recording: VideoRecording) async {
+        viewContext.delete(recording)
+        await saveContext()
+        print("✅ Successfully deleted video record from Core Data.")
+    }
+    
+    /// A private helper function to save the current state of the view context.
     private func saveContext() async {
         guard viewContext.hasChanges else { return }
         
