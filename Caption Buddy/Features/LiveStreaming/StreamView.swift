@@ -56,9 +56,9 @@ struct LiveVideoView: View {
     @ObservedObject var viewModel: StreamViewModel
     
     var body: some View {
-        // Separates the video area from the control panel.
+        // Separates the video area from the control panel
         VStack(spacing: 0) {
-            // --- Top Section: Video Player Area ---
+            // -- Video Player Area --
             ZStack(alignment: .top) {
                 // Main Video Player
                 if let player = viewModel.player {
@@ -93,14 +93,14 @@ struct LiveVideoView: View {
             }
             .ignoresSafeArea(.container, edges: .top)
 
-            // --- Bottom Section: Captions and Chat Panel ---
+            // -- Captions and Chat Panel --
             CaptionsAndChatView(viewModel: viewModel)
         }
         .background(Color.black.ignoresSafeArea())
     }
 }
 
-// --- A dedicated view for the local user's video in the simulator ---
+// -- A dedicated view for the local user's video in the simulator --
 struct LocalUserVideoView: View {
     @State private var player: AVPlayer?
 
@@ -113,7 +113,7 @@ struct LocalUserVideoView: View {
                 Color.black.opacity(0.8)
             }
         }
-        .frame(width: 120, height: 180)
+        .frame(width: 100, height: 150)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white, lineWidth: 2))
         .onAppear {
@@ -132,13 +132,13 @@ struct LocalUserVideoView: View {
     }
 }
 
-// --- A dedicated view for the captions and chat UI ---
+// -- A dedicated view for the captions and chat UI --
 struct CaptionsAndChatView: View {
     @ObservedObject var viewModel: StreamViewModel
 
     var body: some View {
         VStack(spacing: 0) {
-            // --- Current Spoken Word ---
+            // -- Current Spoken Word --
             ZStack {
                 if let index = viewModel.currentCaptionIndex, viewModel.captions.indices.contains(index) {
                     Text(viewModel.captions[index].text)
@@ -154,12 +154,12 @@ struct CaptionsAndChatView: View {
             .frame(height: 60)
             .animation(.easeInOut, value: viewModel.currentCaptionIndex)
             
-            // --- Animation and Chat Area ---
+            // -- Animation and Chat Area --
             ZStack(alignment: .bottom) {
                 // Chat Messages
                 ChatView(viewModel: viewModel)
                 
-                // Lottie Animation (overlays the chat)
+                // Lottie Animation
                 if let animationName = viewModel.animationName {
                     LottieView(name: animationName, loopMode: .playOnce)
                         .frame(height: 80)
@@ -178,7 +178,7 @@ struct ChatView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Divider() 
+            Divider()
             
             ScrollViewReader { proxy in
                 ScrollView {
