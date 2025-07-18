@@ -12,6 +12,9 @@ class StreamingService: NSObject, ObservableObject {
     @Published var remoteUserViews: [UInt: UIView] = [:]
     var chatMessagePublisher = PassthroughSubject<ChatMessage, Never>()
     
+    // Send the live audio to our Use Case for transcription
+    var rawAudioPublisher = PassthroughSubject<Data, Never>()
+    
     private var agoraEngine: AgoraRtcEngineKit?
     private let appId: String = "a691bece736d4fa1bc23caedb7ae49e7"
     private var dataStreamId: Int = 0
@@ -68,6 +71,9 @@ class StreamingService: NSObject, ObservableObject {
             print("❌ Agora Engine not initialized.")
             return
         }
+        
+        engine.setAudioFrameDelegate(self)
+        
         let role: AgoraClientRole = isBroadcaster ? .broadcaster : .audience
         engine.setClientRole(role)
         engine.enableVideo()
@@ -113,6 +119,8 @@ class StreamingService: NSObject, ObservableObject {
     #if !targetEnvironment(simulator)
     private func initializeAgoraEngine() {
         agoraEngine = AgoraRtcEngineKit.sharedEngine(withAppId: appId, delegate: self)
+        
+        agoraEngine?.setRecordingAudioFrameParametersWithSampleRate(16000, channel: 1, mode: .readWrite, samplesPerCall: 1600)
     }
     #else
     private func createFakeRemoteVideoView() -> UIView? {
@@ -144,10 +152,18 @@ class StreamingService: NSObject, ObservableObject {
     #endif
 }
 
-// MARK: - AgoraRtcEngineDelegate
+// MARK: - AgoraRtcEngineDelegate & AgoraAudioFrameDelegate
 #if !targetEnvironment(simulator)
 // This extension is only compiled for real devices.
-extension StreamingService: AgoraRtcEngineDelegate {
+extension StreamingService: AgoraRtcEngineDelegate, AgoraAudioFrameDelegate {
+    
+    func onRecordAudioFrame(_ frame: AgoraAudioFrame) -> Bool {
+        if let data = frame.buffer {
+            // Publish the raw audio data to any listeners 
+            rawAudioPublisher.send(data)
+        }
+        return true
+    }
     
     /// Called when a remote user joins the channel.
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
