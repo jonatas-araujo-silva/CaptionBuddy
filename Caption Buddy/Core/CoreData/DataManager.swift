@@ -1,26 +1,29 @@
 import Foundation
 import CoreData
 
-//Responsible for all interactions with Core Data
+// Responsible for all interactions with Core Data
 
 class DataManager {
     
-    // Shared singleton instance
+    // Used for easy access in the main application
+    // It uses the production Core Data container
     static let shared = DataManager(container: PersistenceController.shared.container)
     
     // Reference to Core Data persistence container
-    private let container: NSPersistentContainer
+    // Can be the real app's container or a mock container for tests
+    let container: NSPersistentContainer
     
     // Main view context for performing database operations
     private var viewContext: NSManagedObjectContext {
         return container.viewContext
     }
     
+    // inject a mock container that uses an in-memory database
     init(container: NSPersistentContainer) {
         self.container = container
     }
     
-    /// Saves a new video recording and its timed captions to database.
+    /// Saves a new video recording and its timed captions to the database.
     func saveVideo(url: URL, timedCaptions: [TimedCaption]) async {
         let newVideo = VideoRecording(context: viewContext)
         
@@ -56,7 +59,6 @@ class DataManager {
     }
     
     /// Deletes a given VideoRecording object from the Core Data store.
-    /// - Parameter recording: The `VideoRecording` managed object to delete.
     func delete(recording: VideoRecording) async {
         viewContext.delete(recording)
         await saveContext()
