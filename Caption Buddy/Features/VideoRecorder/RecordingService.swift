@@ -2,9 +2,22 @@ import Foundation
 import AVFoundation
 import Combine
 
-// CONCERNS:
-class RecordingService: NSObject, ObservableObject {
+// Define the protocol to made this service testable.
 
+protocol RecordingServiceProtocol {
+    var isRecordingPublisher: Published<Bool>.Publisher { get }
+    var isConfiguredPublisher: Published<Bool>.Publisher { get }
+    var previewLayerPublisher: PassthroughSubject<AVCaptureVideoPreviewLayer, Never> { get }
+    
+    func startRecording()
+    func stopRecording() async
+}
+
+class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
+
+    var isRecordingPublisher: Published<Bool>.Publisher { $isRecording }
+    var isConfiguredPublisher: Published<Bool>.Publisher { $isConfigured }
+    
     private let session = AVCaptureSession()
     
     var previewLayerPublisher = PassthroughSubject<AVCaptureVideoPreviewLayer, Never>()
@@ -27,7 +40,6 @@ class RecordingService: NSObject, ObservableObject {
     override init() {
         super.init()
         #if !targetEnvironment(simulator)
-        // Dispatch the configuration to background queue.
         sessionQueue.async {
             self.configureSession()
         }
@@ -45,7 +57,7 @@ class RecordingService: NSObject, ObservableObject {
 
     #if !targetEnvironment(simulator)
     private func configureSession() {
-        //Runs on sessionQueue
+        // Runs on the `sessionQueue`.
         session.beginConfiguration()
         session.sessionPreset = .high
 
@@ -87,7 +99,6 @@ class RecordingService: NSObject, ObservableObject {
         
         self.session.startRunning()
         
-        // Send it to the main thread for the UI
         let previewLayer = AVCaptureVideoPreviewLayer(session: self.session)
         previewLayer.videoGravity = .resizeAspectFill
         

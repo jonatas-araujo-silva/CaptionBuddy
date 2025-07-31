@@ -1,11 +1,14 @@
 import Foundation
-import AVFoundation
 import Combine
+import AVFoundation
+
+/* Depends on the RecordingServiceProtocol in order to made dependency injection of a mock service during unit tests.
+ */
 
 @MainActor
 class RecorderViewModel: ObservableObject {
     
-    private let recordingService = RecordingService()
+    private let recordingService: RecordingServiceProtocol
     
     @Published var previewLayer: AVCaptureVideoPreviewLayer?
     @Published var isSessionReady = false
@@ -13,8 +16,11 @@ class RecorderViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    init() {
-        // Subscribe to the previewLayerPublisher from the service.
+    // The default value `RecordingService()` ensures that the main app can still create the ViewModel
+    init(recordingService: RecordingServiceProtocol = RecordingService()) {
+        self.recordingService = recordingService
+        
+        // Subscribe to the publishers from the service protocol.
         recordingService.previewLayerPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] layer in
@@ -22,19 +28,18 @@ class RecorderViewModel: ObservableObject {
             }
             .store(in: &cancellables)
             
-        // Subscribe to the isConfigured property from the service.
-        recordingService.$isConfigured
+        recordingService.isConfiguredPublisher
             .receive(on: DispatchQueue.main)
             .assign(to: \.isSessionReady, on: self)
             .store(in: &cancellables)
             
-        // Subscribe to the isRecording property from the service.
-        recordingService.$isRecording
+        recordingService.isRecordingPublisher
             .receive(on: DispatchQueue.main)
             .assign(to: \.isRecording, on: self)
             .store(in: &cancellables)
     }
     
+    /// Toggles the recording state by calling the appropriate method on the injected service.
     func toggleRecording() async {
         if isRecording {
             await recordingService.stopRecording()
