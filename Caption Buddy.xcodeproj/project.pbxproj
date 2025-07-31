@@ -35,6 +35,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6C8078AB2E3B883700D0C1AB /* Exceptions for "Caption Buddy" folder in "Caption BuddyTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Core/CoreData/Caption_Buddy.xcdatamodeld,
+			);
+			target = 6C8709112DFAF23B00C4AD1B /* Caption BuddyTests */;
+		};
 		6C8709242DFAF23B00C4AD1B /* Exceptions for "Caption Buddy" folder in "Caption Buddy" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -49,6 +56,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				6C8709242DFAF23B00C4AD1B /* Exceptions for "Caption Buddy" folder in "Caption Buddy" target */,
+				6C8078AB2E3B883700D0C1AB /* Exceptions for "Caption Buddy" folder in "Caption BuddyTests" target */,
 			);
 			path = "Caption Buddy";
 			sourceTree = "<group>";
