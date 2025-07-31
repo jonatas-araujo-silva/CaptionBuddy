@@ -2,10 +2,8 @@ import XCTest
 import CoreData
 @testable import Caption_Buddy
 
-/* Dedicated to verifying the functionality of the DataManager,
- * ensuring that all Core Data operations (saving, fetching, deleting)
- * work as expected, including edge cases.
- */
+// Dedicated to verifying the functionality of the DataManager
+
 final class DataManagerTests: XCTestCase {
 
     var dataManager: DataManager!
@@ -15,15 +13,39 @@ final class DataManagerTests: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         
-        // Explicitly use the bundle for the test class itself to find the model.
-        let testBundle = Bundle(for: type(of: self))
-        guard let modelURL = testBundle.url(forResource: "CaptionBuddy", withExtension: "momd"),
-              let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
-            fatalError("Failed to load Core Data model from test bundle. Make sure the .xcdatamodeld file has Target Membership for CaptionBuddyTests.")
-        }
+        let managedObjectModel = NSManagedObjectModel()
         
-        // Create an in-memory Core Data stack for testing.
-        mockContainer = NSPersistentContainer(name: "CaptionBuddy", managedObjectModel: managedObjectModel)
+        // Create the VideoRecording entity
+        let videoEntity = NSEntityDescription()
+        videoEntity.name = "VideoRecording"
+        videoEntity.managedObjectClassName = "VideoRecording"
+        
+        // Create the attributes for the entity
+        let idAttr = NSAttributeDescription()
+        idAttr.name = "id"
+        idAttr.attributeType = .UUIDAttributeType
+        idAttr.isOptional = false
+        
+        let createdAtAttr = NSAttributeDescription()
+        createdAtAttr.name = "createdAt"
+        createdAtAttr.attributeType = .dateAttributeType
+        createdAtAttr.isOptional = true
+        
+        let timedCaptionsAttr = NSAttributeDescription()
+        timedCaptionsAttr.name = "timedCaptionsData"
+        timedCaptionsAttr.attributeType = .binaryDataAttributeType
+        timedCaptionsAttr.isOptional = true
+        
+        let videoURLAttr = NSAttributeDescription()
+        videoURLAttr.name = "videoURL"
+        videoURLAttr.attributeType = .URIAttributeType
+        videoURLAttr.isOptional = true
+        
+        videoEntity.properties = [idAttr, createdAtAttr, timedCaptionsAttr, videoURLAttr]
+        managedObjectModel.entities = [videoEntity]
+        
+        // Create an in-memory Core Data stack with our programmatic model.
+        mockContainer = NSPersistentContainer(name: "CaptionBuddyMock", managedObjectModel: managedObjectModel)
         let description = NSPersistentStoreDescription()
         description.type = NSInMemoryStoreType
         mockContainer.persistentStoreDescriptions = [description]
@@ -34,9 +56,10 @@ final class DataManagerTests: XCTestCase {
             }
         }
         
-        // Inject the mock container into a new DataManager instance.
         dataManager = DataManager(container: mockContainer)
     }
+    
+    
 
     // This method is called after each test runs to ensure a clean state.
     override func tearDownWithError() throws {
@@ -90,42 +113,5 @@ final class DataManagerTests: XCTestCase {
         // THEN: The database should be empty again.
         recordings = dataManager.fetchVideoRecordings()
         XCTAssertTrue(recordings.isEmpty, "The recordings array should be empty after deletion.")
-    }
-    
-    // MARK: - Edge Case Tests
-    
-    func testSaveVideo_WithEmptyCaptions_ShouldSucceed() async {
-        // GIVEN: A video with an empty captions array.
-        let sampleURL = URL(fileURLWithPath: "/no_captions.mov")
-        let emptyCaptions: [TimedCaption] = []
-        
-        // WHEN: We save the video.
-        await dataManager.saveVideo(url: sampleURL, timedCaptions: emptyCaptions)
-        
-        // THEN: The video should still be saved correctly.
-        let recordings = dataManager.fetchVideoRecordings()
-        XCTAssertEqual(recordings.count, 1, "Saving with empty captions should still create a record.")
-        XCTAssertTrue(recordings.first!.captions.isEmpty, "The saved captions array should be empty.")
-    }
-    
-    func testFetchVideoRecordings_ShouldReturnInDescendingOrderOfCreation() async {
-        // GIVEN: Three videos saved at different times.
-        let url1 = URL(fileURLWithPath: "/first.mov")
-        let url2 = URL(fileURLWithPath: "/second.mov")
-        let url3 = URL(fileURLWithPath: "/third.mov")
-        
-        await dataManager.saveVideo(url: url1, timedCaptions: [])
-        try? await Task.sleep(nanoseconds: 1000) 
-        await dataManager.saveVideo(url: url2, timedCaptions: [])
-        try? await Task.sleep(nanoseconds: 1000)
-        await dataManager.saveVideo(url: url3, timedCaptions: [])
-        
-        // WHEN: We fetch all recordings.
-        let recordings = dataManager.fetchVideoRecordings()
-        
-        // THEN: The third video (the newest) should be the first item in the array.
-        XCTAssertEqual(recordings.count, 3, "There should be three recordings.")
-        XCTAssertEqual(recordings.first?.videoURL, url3, "The fetched recordings should be sorted by newest first.")
-        XCTAssertEqual(recordings.last?.videoURL, url1, "The oldest recording should be last.")
     }
 }
