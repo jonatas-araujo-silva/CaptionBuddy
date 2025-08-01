@@ -45,7 +45,7 @@ final class RecorderViewModelTests: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        // For each test, creates a new mock service and inject it into the ViewModel.
+        // For each test, creates a new mock service and inject it into ViewModel
         mockService = MockRecordingService()
         viewModel = RecorderViewModel(recordingService: mockService)
         cancellables = []
@@ -61,7 +61,7 @@ final class RecorderViewModelTests: XCTestCase {
     // MARK: - Test Functions
 
     func testToggleRecording_whenNotRecording_shouldStartRecording() async {
-        // GIVEN: The service is not currently recording.
+        // GIVEN: Service is not currently recording
         mockService.isRecording = false
         // Allow publisher to update ViewModel:
         await Task.yield()
@@ -94,19 +94,19 @@ final class RecorderViewModelTests: XCTestCase {
         
         // Observe the ViewModel's isRecording property.
         viewModel.$isRecording
-            .dropFirst() // Ignore the initial mock value
+            .dropFirst() // Ignore initial mock value
             .sink { isRecording in
-                // THEN: The ViewModel's property should become true.
+                // THEN: ViewModel's property should become true
                 if isRecording {
                     expectation.fulfill()
                 }
             }
             .store(in: &cancellables)
         
-        // WHEN: The mock service's isRecording property changes to true.
+        // WHEN:Mock service's isRecording property changes to true
         mockService.isRecording = true
         
-        // Wait for the expectation to be fulfilled.
+        // Wait for the expectation to be fullfilled.
         wait(for: [expectation], timeout: 1.0)
     }
 }

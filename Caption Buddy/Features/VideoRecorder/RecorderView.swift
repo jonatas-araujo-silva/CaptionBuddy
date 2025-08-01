@@ -49,6 +49,7 @@ struct RecorderView: View {
                             .frame(width: viewModel.isRecording ? 45 : 65, height: viewModel.isRecording ? 45 : 65)
                     }
                 }
+                .accessibilityIdentifier("recordButton")
                 .buttonStyle(PlainButtonStyle())
                 .animation(.spring(), value: viewModel.isRecording)
                 .padding(.bottom, 30)

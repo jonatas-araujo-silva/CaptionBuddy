@@ -32,6 +32,7 @@ struct PreJoinView: View {
             Spacer()
             Image(systemName: "dot.radiowaves.left.and.right").font(.system(size: 60)).foregroundColor(.red)
             Text("Live Stream").font(.largeTitle).fontWeight(.bold)
+                .accessibilityIdentifier("liveStreamTitle")
             Text("Start a broadcast or join an existing channel as a viewer.").font(.subheadline).foregroundColor(.secondary).multilineTextAlignment(.center).padding(.horizontal)
             VStack {
                 TextField("Enter Channel Name", text: $viewModel.channelName)
