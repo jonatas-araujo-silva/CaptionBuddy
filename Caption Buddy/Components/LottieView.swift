@@ -1,7 +1,7 @@
 import SwiftUI
 import Lottie
 
-// Acts as a wrapper around UIKit's LottieAnimationView. Use Coordinator pattern
+// Acts as a wrapper around UIKit's LottieAnimationView.
  
 struct LottieView: UIViewRepresentable {
     // The name of the Lottie animation file
