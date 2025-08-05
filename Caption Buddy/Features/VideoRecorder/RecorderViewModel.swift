@@ -2,9 +2,6 @@ import Foundation
 import Combine
 import AVFoundation
 
-/* Depends on the RecordingServiceProtocol in order to made dependency injection of a mock service during unit tests.
- */
-
 @MainActor
 class RecorderViewModel: ObservableObject {
     
@@ -16,11 +13,13 @@ class RecorderViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    // The default value `RecordingService()` ensures that the main app can still create the ViewModel
-    init(recordingService: RecordingServiceProtocol = RecordingService()) {
-        self.recordingService = recordingService
+    init() {
+        #if targetEnvironment(simulator)
+        self.recordingService = SimulatorRecordingService()
+        #else
+        self.recordingService = AVFoundationRecordingService()
+        #endif
         
-        // Subscribe to the publishers from the service protocol.
         recordingService.previewLayerPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] layer in
@@ -39,12 +38,11 @@ class RecorderViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    /// Toggles the recording state by calling the appropriate method on the injected service.
     func toggleRecording() async {
         if isRecording {
             await recordingService.stopRecording()
         } else {
-            recordingService.startRecording()
+            await recordingService.startRecording()
         }
     }
 }

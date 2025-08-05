@@ -2,55 +2,62 @@ import Foundation
 import AVFoundation
 import Combine
 
-class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
+/* Real implementation of the RecordingServiceProtocol that uses AVFoundation to capture and record video and audio from the device's hardware.
+ */
 
-    // Returns a publisher for the @Published properties
+class AVFoundationRecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
+
+    // MARK: - Protocol Conformance
     var isRecordingPublisher: AnyPublisher<Bool, Never> { $isRecording.eraseToAnyPublisher() }
     var isConfiguredPublisher: AnyPublisher<Bool, Never> { $isConfigured.eraseToAnyPublisher() }
-    
-    private let session = AVCaptureSession()
-    
     var previewLayerPublisher = PassthroughSubject<AVCaptureVideoPreviewLayer, Never>()
     
-    @MainActor @Published var isConfigured = false
-    @MainActor @Published var isRecording = false
+    // MARK: - Published Properties
+    @MainActor @Published private var isConfigured = false
+    @MainActor @Published private var isRecording = false
 
+    // MARK: - Private Properties
+    private let session = AVCaptureSession()
+    private let sessionQueue = DispatchQueue(label: "com.captionbuddy.session.queue")
+    private let dataOutputQueue = DispatchQueue(label: "com.captionbuddy.data.output.queue")
+    
+    // Dependencies are injected
+    private let dataManager: DataManager
+    private let captionService: CaptionService
+    
     private var videoDeviceInput: AVCaptureDeviceInput?
     private var audioDeviceInput: AVCaptureDeviceInput?
     private var videoOutput: AVCaptureVideoDataOutput?
     private var audioOutput: AVCaptureAudioDataOutput?
-    private let sessionQueue = DispatchQueue(label: "session.queue")
-    private let dataOutputQueue = DispatchQueue(label: "data.output.queue")
     private var assetWriter: AVAssetWriter?
     private var assetWriterVideoInput: AVAssetWriterInput?
     private var assetWriterAudioInput: AVAssetWriterInput?
     private var sessionAtSourceTime: CMTime?
-
-
-    override init() {
+    
+    // Initializer accepts dependencies
+    init(dataManager: DataManager = .shared, captionService: CaptionService = .shared) {
+        self.dataManager = dataManager
+        self.captionService = captionService
         super.init()
-        #if !targetEnvironment(simulator)
+        
         sessionQueue.async {
             self.configureSession()
         }
-        #endif
     }
     
     deinit {
-        sessionQueue.async { [weak self] in
-            guard let self = self else { return }
+        sessionQueue.async {
             if self.session.isRunning {
                 self.session.stopRunning()
             }
         }
     }
 
-    #if !targetEnvironment(simulator)
     private func configureSession() {
-        // Runs on the `sessionQueue`.
         session.beginConfiguration()
         session.sessionPreset = .high
 
+        // Video Input Setup
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice),
               session.canAddInput(videoDeviceInput) else {
@@ -61,6 +68,7 @@ class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
         session.addInput(videoDeviceInput)
         self.videoDeviceInput = videoDeviceInput
 
+        // Audio Input Setup
         guard let audioDevice = AVCaptureDevice.default(for: .audio),
               let audioDeviceInput = try? AVCaptureDeviceInput(device: audioDevice),
               session.canAddInput(audioDeviceInput) else {
@@ -71,6 +79,7 @@ class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
         session.addInput(audioDeviceInput)
         self.audioDeviceInput = audioDeviceInput
         
+        // Video Output Setup
         let videoOutput = AVCaptureVideoDataOutput()
         if session.canAddOutput(videoOutput) {
             videoOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
@@ -78,6 +87,7 @@ class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
             self.videoOutput = videoOutput
         }
         
+        // Audio Output Setup
         let audioOutput = AVCaptureAudioDataOutput()
         if session.canAddOutput(audioOutput) {
             audioOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
@@ -97,20 +107,8 @@ class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
             self.isConfigured = true
         }
     }
-    #endif
-    
-    private func createNewFileURL() -> URL {
-        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let fileName = "video-\(formatter.string(from: Date())).mov"
-        return documentsDirectory.appendingPathComponent(fileName)
-    }
 
-    public func startRecording() {
-        #if targetEnvironment(simulator)
-        Task { @MainActor in self.isRecording = true }
-        #else
+    func startRecording() async {
         dataOutputQueue.async {
             guard !self.isRecording else { return }
             let outputURL = self.createNewFileURL()
@@ -124,10 +122,12 @@ class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
             self.assetWriterVideoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
             self.assetWriterVideoInput?.expectsMediaDataInRealTime = true
             if let videoInput = self.assetWriterVideoInput, self.assetWriter?.canAdd(videoInput) == true { self.assetWriter?.add(videoInput) }
+            
             let audioSettings: [String: Any] = [ AVFormatIDKey: kAudioFormatMPEG4AAC, AVNumberOfChannelsKey: 1, AVSampleRateKey: 44100.0, AVEncoderBitRateKey: 64000 ]
             self.assetWriterAudioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
             self.assetWriterAudioInput?.expectsMediaDataInRealTime = true
             if let audioInput = self.assetWriterAudioInput, self.assetWriter?.canAdd(audioInput) == true { self.assetWriter?.add(audioInput) }
+            
             self.sessionAtSourceTime = nil
             self.assetWriter?.startWriting()
             
@@ -135,28 +135,22 @@ class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
                 self.isRecording = true
             }
         }
-        #endif
     }
 
-    public func stopRecording() async {
-        #if targetEnvironment(simulator)
-        await MainActor.run { self.isRecording = false }
-        print("SIMULATOR: Generating sample recording.")
-        await generateSampleRecording()
-        #else
+    func stopRecording() async {
         await MainActor.run { self.isRecording = false }
         
         guard let writer = self.assetWriter else { return }
         let videoURL = writer.outputURL
         
-        await writer.finish()
+        await writer.finishWriting()
         
         print("Finished writing video to: \(videoURL)")
         
-        let result = await CaptionService.shared.transcribeVideo(url: videoURL)
+        let result = await captionService.transcribeVideo(url: videoURL)
         switch result {
         case .success(let timedCaptions):
-            await DataManager.shared.saveVideo(url: videoURL, timedCaptions: timedCaptions)
+            await dataManager.saveVideo(url: videoURL, timedCaptions: timedCaptions)
         case .failure(let error):
             print("Transcription failed: \(error.localizedDescription)")
         }
@@ -164,33 +158,20 @@ class RecordingService: NSObject, ObservableObject, RecordingServiceProtocol {
         self.assetWriter = nil
         self.assetWriterVideoInput = nil
         self.assetWriterAudioInput = nil
-        #endif
     }
     
-    #if targetEnvironment(simulator)
-    private func generateSampleRecording() async {
-        guard let videoURL = Bundle.main.url(forResource: "sample_video", withExtension: "mp4"),
-              let captionsURL = Bundle.main.url(forResource: "sample_captions", withExtension: "json") else {
-            print("❌ SIMULATOR ERROR: Could not find sample_video.mp4 or sample_captions.json in the project Resources.")
-            return
-        }
-        
-        do {
-            let captionsData = try Data(contentsOf: captionsURL)
-            let decoder = JSONDecoder()
-            let timedCaptions = try decoder.decode([TimedCaption].self, from: captionsData)
-            await DataManager.shared.saveVideo(url: videoURL, timedCaptions: timedCaptions)
-        } catch {
-            print("❌ SIMULATOR ERROR: Failed to decode sample captions JSON: \(error)")
-        }
+    private func createNewFileURL() -> URL {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let fileName = "video-\(formatter.string(from: Date())).mov"
+        return documentsDirectory.appendingPathComponent(fileName)
     }
-    #endif
 }
 
-#if !targetEnvironment(simulator)
-extension RecordingService: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
-    
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+// Delegate extension for AVCaptureVideoDataOutputSampleBufferDelegate
+extension AVFoundationRecordingService: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
+    @MainActor func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard isRecording, let writer = assetWriter, writer.status == .writing else { return }
         let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
         if sessionAtSourceTime == nil {
@@ -205,4 +186,3 @@ extension RecordingService: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapt
         }
     }
 }
-#endif

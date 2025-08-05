@@ -58,7 +58,7 @@ struct RecorderView: View {
     }
 }
 
-//A helper view for the real device's camera layer
+//View for the real device's camera layer
 struct VideoPreviewView: UIViewRepresentable {
     let layer: AVCaptureVideoPreviewLayer
 
@@ -78,7 +78,7 @@ struct VideoPreviewView: UIViewRepresentable {
     }
 }
 
-//A reusable view for displaying error messages / simulator status
+//View for displaying error messages / simulator status
 struct ErrorView: View {
     let systemImageName: String
     let errorMessage: String
