@@ -1,39 +1,32 @@
 import Foundation
 
-/* Populating the app with sample data for portfolio demos,
+/* Simple utility for populating the app with sample data for portfolio demos,
  * specifically when running on the simulator.
  */
-
 struct DemoDataGenerator {
+    
+    private struct DemoAsset {
+        let videoName: String
+        let captionName: String
+    }
+    
+    private static let demoAssets: [DemoAsset] = [
+        DemoAsset(videoName: "FirstVideo_Portfolio", captionName: "Caption_FirstVideo_Portfolio"),
+        DemoAsset(videoName: "SecondVideo_Portfolio", captionName: "Caption_SecondVideo_Portfolio"),
+        DemoAsset(videoName: "DemoLibraryVideo", captionName: "DemoLibraryCaption")
+    ]
     
     static func createPortfolioEntries() async {
         print("SIMULATOR: Generating portfolio demo entries...")
         
-        // --- Create Entry for the First Video ---
-        if let videoURL1 = Bundle.main.url(forResource: "FirstVideo_Portfolio", withExtension: "mp4"),
-           let captionsURL1 = Bundle.main.url(forResource: "Caption_FirstVideo_Portfolio", withExtension: "json") {
-            
-            await saveDemoData(videoURL: videoURL1, captionsURL: captionsURL1)
-        } else {
-            print("❌ SIMULATOR ERROR: Could not find FirstVideo_Portfolio assets.")
-        }
-        
-        // --- Create Entry for the Second Video ---
-        if let videoURL2 = Bundle.main.url(forResource: "SecondVideo_Portfolio", withExtension: "mp4"),
-           let captionsURL2 = Bundle.main.url(forResource: "Caption_SecondVideo_Portfolio", withExtension: "json") {
-            
-            await saveDemoData(videoURL: videoURL2, captionsURL: captionsURL2)
-        } else {
-            print("❌ SIMULATOR ERROR: Could not find SecondVideo_Portfolio assets.")
-        }
-        
-        // --- Create Entry for the Third Video ---
-        if let videoURL3 = Bundle.main.url(forResource: "DemoLibraryVideo", withExtension: "mp4"),
-           let captionsURL3 = Bundle.main.url(forResource: "DemoLibraryCaption", withExtension: "json") {
-            
-            await saveDemoData(videoURL: videoURL3, captionsURL: captionsURL3)
-        } else {
-            print("❌ SIMULATOR ERROR: Could not find DemoLibraryVideo assets.")
+        for asset in demoAssets {
+            if let videoURL = Bundle.main.url(forResource: asset.videoName, withExtension: "mp4"),
+               let captionsURL = Bundle.main.url(forResource: asset.captionName, withExtension: "json") {
+                
+                await saveDemoData(videoURL: videoURL, captionsURL: captionsURL)
+            } else {
+                print("❌ SIMULATOR ERROR: Could not find assets for \(asset.videoName).")
+            }
         }
     }
     
