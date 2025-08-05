@@ -1,9 +1,8 @@
 import SwiftUI
 import AVKit
 
-/* Responsible for displaying the video player, and features:
- * captions and Lottie animations.
- */
+// Responsible for displays video player, captions and Lottie animations.
+
 struct PlayerView: View {
     
     @StateObject var viewModel: PlayerViewModel
@@ -13,17 +12,11 @@ struct PlayerView: View {
             //  Video Player 
             if let player = viewModel.player {
                 VideoPlayer(player: player)
-                    .onAppear { player.play() }
-                    .onDisappear { player.pause() }
                     .ignoresSafeArea()
             } else {
-                VStack {
-                    Image(systemName: "video.slash.fill")
-                        .font(.largeTitle)
-                    Text("Error: Could not load video.")
-                        .padding(.top)
-                }
+                ProgressView()
             }
+            
             
             // --- UI Overlay ---
             VStack(spacing: 0) {
@@ -52,7 +45,11 @@ struct PlayerView: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(Color.black)
         .onDisappear {
+            viewModel.pause()
             viewModel.cleanup()
+        }
+        .task {
+            await viewModel.setupPlayer()
         }
     }
 }

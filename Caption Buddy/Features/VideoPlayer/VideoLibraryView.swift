@@ -61,7 +61,7 @@ struct VideoLibraryView: View {
     }
 }
 
-//Helper view for a single row in library list, now using a thumbnail
+//Helper view for a single row in library list.
 struct VideoRow: View {
     let recording: VideoRecording
     
