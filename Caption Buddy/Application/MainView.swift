@@ -7,8 +7,8 @@ import Lottie
 struct MainView: View {
     
     init() {
-        // Set the color for the icon and text of unselected tabs
-        // Ensures they are visible against dark backgrounds
+        // Set the color for icon and text of unselected tabs
+        // Ensures they are visible in dark backgrounds
         UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray
     }
 
