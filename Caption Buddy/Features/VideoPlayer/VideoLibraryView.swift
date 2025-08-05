@@ -1,44 +1,28 @@
 import SwiftUI
+import CoreData
 import AVFoundation
 
 // Displays a list of all video recordings saved in Core Data
-
 struct VideoLibraryView: View {
     
-    @StateObject private var viewModel = VideoLibraryViewModel()
+    // Get the managed object context from the environment
+    @Environment(\.managedObjectContext) private var viewContext
+
+    // Automatically fetch and update `recordings` array whenever data in CoreData changes
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \VideoRecording.createdAt, ascending: false)],
+        animation: .default)
+    
+    private var recordings: FetchedResults<VideoRecording>
     
     var body: some View {
         NavigationView {
-            VStack {
-                if viewModel.recordings.isEmpty {
-                    VStack(spacing: 20) {
-                        Image(systemName: "film.stack")
-                            .font(.system(size: 80))
-                            .foregroundColor(.gray)
-                        Text("No Recordings Yet")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        Text("Tap 'Generate Demos' to load sample videos.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                    }
+            // Chooses which view to display based on the recordings state
+            Group {
+                if recordings.isEmpty {
+                    EmptyLibraryView()
                 } else {
-                    // Saved video recordings
-                    List {
-                        ForEach(viewModel.recordings) { recording in
-                            NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(recording: recording))) {
-                                VideoRow(recording: recording)
-                            }
-                        }
-                        .onDelete { indexSet in
-                            Task {
-                                await viewModel.delete(at: indexSet)
-                            }
-                        }
-                    }
-                    .listStyle(InsetGroupedListStyle())
+                    RecordingsListView(recordings: recordings, onDelete: deleteItems)
                 }
             }
             .navigationTitle("Library")
@@ -48,20 +32,69 @@ struct VideoLibraryView: View {
                     Button("Generate Demos") {
                         Task {
                             await DemoDataGenerator.createPortfolioEntries()
-                            viewModel.fetchRecordings()
                         }
                     }
                 }
                 #endif
             }
         }
-        .onAppear {
-            viewModel.fetchRecordings()
+    }
+    
+    // Works directly with the view context
+    private func deleteItems(offsets: IndexSet) {
+        withAnimation {
+            offsets.map { recordings[$0] }.forEach(viewContext.delete)
+
+            do {
+                try viewContext.save()
+            } catch {
+                let nsError = error as NSError
+                print("❌ Error saving context after deletion: \(nsError), \(nsError.userInfo)")
+            }
         }
     }
 }
 
-//Helper view for a single row in library list.
+// View for empty state
+private struct EmptyLibraryView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "film.stack")
+                .font(.system(size: 80))
+                .foregroundColor(.gray)
+            Text("No Recordings Yet")
+                .font(.title)
+                .fontWeight(.bold)
+                .accessibilityIdentifier("emptyLibraryMessage")
+            Text("Tap 'Generate Demos' to load sample videos.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+        }
+    }
+}
+
+// View for the list of recordings
+private struct RecordingsListView: View {
+    let recordings: FetchedResults<VideoRecording>
+    let onDelete: (IndexSet) -> Void
+    
+    var body: some View {
+        List {
+            ForEach(recordings) { recording in
+                NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(recording: recording))) {
+                    VideoRow(recording: recording)
+                }
+            }
+            .onDelete(perform: onDelete)
+        }
+        .listStyle(InsetGroupedListStyle())
+    }
+}
+
+
+//View for a single row in the library list
 struct VideoRow: View {
     let recording: VideoRecording
     
@@ -92,7 +125,7 @@ struct VideoRow: View {
     }
 }
 
-//Dedicated view that async generate/displays a thumbnail
+// View that asynchronously generates and displays a thumbnail for a given video URL.
 struct VideoThumbnailView: View {
     let videoURL: URL?
     
@@ -111,22 +144,22 @@ struct VideoThumbnailView: View {
         .onAppear(perform: generateThumbnail)
     }
     
+    
     private func generateThumbnail() {
         guard let url = videoURL else { return }
         
-        DispatchQueue.global(qos: .userInitiated).async {
-            let asset = AVAsset(url: url)
+        Task(priority: .userInitiated) {
+            let asset = AVURLAsset(url: url)
             let imageGenerator = AVAssetImageGenerator(asset: asset)
             imageGenerator.appliesPreferredTrackTransform = true
             
-            // Generate an image at the 1 second mark of the video
             let time = CMTime(seconds: 1, preferredTimescale: 600)
             
             do {
-                let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+                let cgImage = try await imageGenerator.image(at: time).image
                 let uiImage = UIImage(cgImage: cgImage)
                 
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.thumbnailImage = uiImage
                 }
             } catch {
@@ -139,4 +172,5 @@ struct VideoThumbnailView: View {
 
 #Preview {
     VideoLibraryView()
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }
