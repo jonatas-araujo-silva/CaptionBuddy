@@ -8,8 +8,8 @@ struct PlayerView: View {
     @StateObject var viewModel: PlayerViewModel
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            //  Video Player 
+        ZStack {
+            // Layer 1: Video Player
             if let player = viewModel.player {
                 VideoPlayer(player: player)
                     .ignoresSafeArea()
@@ -17,29 +17,8 @@ struct PlayerView: View {
                 ProgressView()
             }
             
-            
-            // --- UI Overlay ---
-            VStack(spacing: 0) {
-                ZStack {
-                    if let index = viewModel.currentCaptionIndex {
-                        if viewModel.captions.indices.contains(index) {
-                            Text(viewModel.captions[index].text)
-                                .font(.title).bold()
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Color.black.opacity(0.6))
-                                .clipShape(Capsule())
-                                .transition(.opacity.combined(with: .scale))
-                        }
-                    }
-                }
-                .frame(height: 60)
-                .animation(.easeInOut, value: viewModel.currentCaptionIndex)
-                
-                AnimationDisplayView(animationName: viewModel.animationName)
-            }
-            .padding(.bottom)
+            // Layer 2: All UI Overlays
+            PlayerOverlaysView(viewModel: viewModel)
         }
         .navigationTitle(viewModel.recording.createdAt?.formatted(date: .abbreviated, time: .shortened) ?? "Video")
         .navigationBarTitleDisplayMode(.inline)
@@ -54,6 +33,56 @@ struct PlayerView: View {
     }
 }
 
+// View that contains all UI elements layered on top of the main video player, such as captions and animations.
+struct PlayerOverlaysView: View {
+    @ObservedObject var viewModel: PlayerViewModel
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            
+            // Holds the caption and animation panel
+            VStack(spacing: 0) {
+                CurrentCaptionView(
+                    captions: viewModel.captions,
+                    currentIndex: viewModel.currentCaptionIndex
+                )
+                AnimationDisplayView(animationName: viewModel.animationName)
+            }
+            .padding(.bottom)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .padding(.horizontal)
+            .padding(.bottom)
+        }
+    }
+}
+
+// Reusable component whose only job is display the currently spoken word with a smooth animation.
+struct CurrentCaptionView: View {
+    let captions: [TimedCaption]
+    let currentIndex: Int?
+    
+    var body: some View {
+        ZStack {
+            if let index = currentIndex, captions.indices.contains(index) {
+                Text(captions[index].text)
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.white.opacity(0.5))
+                    .clipShape(Capsule())
+                    .transition(.opacity.combined(with: .scale))
+            }
+        }
+        .frame(height: 60)
+        .animation(.easeInOut, value: currentIndex)
+    }
+}
+
+
+// Helper view to manage the animation's presentation
 struct AnimationDisplayView: View {
     let animationName: String?
 
@@ -71,3 +100,14 @@ struct AnimationDisplayView: View {
     }
 }
 
+// MARK: - Preview
+#Preview {
+    let moc = PersistenceController.preview.container.viewContext
+    let previewRecording = VideoRecording(context: moc)
+    previewRecording.createdAt = Date()
+    previewRecording.videoURL = URL(string: "example.com")
+    
+    return NavigationView {
+        PlayerView(viewModel: PlayerViewModel(recording: previewRecording))
+    }
+}
