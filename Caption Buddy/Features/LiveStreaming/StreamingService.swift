@@ -7,16 +7,24 @@ import SwiftUI
 import AVKit
 #endif
 
-class StreamingService: NSObject, ObservableObject {
+// Define what any "Streaming Service" must be able to do.
+protocol StreamingServiceProtocol {
+    var rawAudioPublisher: PassthroughSubject<Data, Never> { get }
+    
+    func joinChannel(channelName: String, isBroadcaster: Bool)
+    func leaveChannel()
+    func sendMessage(_ messageText: String) // Add this line
+}
+
+class StreamingService: NSObject, ObservableObject, StreamingServiceProtocol {
     
     @Published var remoteUserViews: [UInt: UIView] = [:]
     var chatMessagePublisher = PassthroughSubject<ChatMessage, Never>()
     
-    // Send the live audio to our Use Case for transcription
     var rawAudioPublisher = PassthroughSubject<Data, Never>()
     
     private var agoraEngine: AgoraRtcEngineKit?
-    private let appId: String = "a691bece736d4fa1bc23caedb7ae49e7"
+    private let appId: String = "YOUR_AGORA_APP_ID"
     private var dataStreamId: Int = 0
     
     #if targetEnvironment(simulator)
@@ -26,7 +34,6 @@ class StreamingService: NSObject, ObservableObject {
     override init() {
         super.init()
         #if !targetEnvironment(simulator)
-        // Only initialize the real engine on a physical device
         initializeAgoraEngine()
         #endif
     }
@@ -35,17 +42,15 @@ class StreamingService: NSObject, ObservableObject {
         #if !targetEnvironment(simulator)
         agoraEngine?.leaveChannel(nil)
         AgoraRtcEngineKit.destroy()
-        print("StreamingService deinitialized and Agora engine destroyed.")
         #endif
     }
     
     // MARK: - Public Methods
     
-    /// Sets up the local user's video feed to be displayed.
     func setupLocalVideo(on view: UIView) {
         #if !targetEnvironment(simulator)
         let videoCanvas = AgoraRtcVideoCanvas()
-        videoCanvas.uid = 0 // 0 = local user
+        videoCanvas.uid = 0
         videoCanvas.view = view
         videoCanvas.renderMode = .hidden
         agoraEngine?.setupLocalVideo(videoCanvas)
@@ -53,12 +58,10 @@ class StreamingService: NSObject, ObservableObject {
         #endif
     }
     
-    /// Joins a specified channel to start or view a stream.
     func joinChannel(channelName: String, isBroadcaster: Bool) {
         #if targetEnvironment(simulator)
         print("SIMULATOR: Pretending to join channel '\(channelName)'.")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            print("SIMULATOR: A remote user has joined.")
             if let fakeView = self.createFakeRemoteVideoView() {
                 self.remoteUserViews[123] = fakeView
             }
@@ -66,42 +69,34 @@ class StreamingService: NSObject, ObservableObject {
             self.chatMessagePublisher.send(welcomeMessage)
         }
         #else
-        // -- REAL DEVICE --
-        guard let engine = agoraEngine else {
-            print("❌ Agora Engine not initialized.")
-            return
-        }
+        guard let engine = agoraEngine else { return }
         
         engine.setAudioFrameDelegate(self)
         
         let role: AgoraClientRole = isBroadcaster ? .broadcaster : .audience
         engine.setClientRole(role)
         engine.enableVideo()
+        
         let config = AgoraDataStreamConfig()
         config.syncWithAudio = false
         config.ordered = true
         engine.createDataStream(&dataStreamId, config: config)
-        engine.joinChannel(byToken: nil, channelId: channelName, info: nil, uid: 0) { (channel, uid, elapsed) in
-            print("✅ Successfully joined channel: \(channel) with uid: \(uid)")
-        }
+        
+        engine.joinChannel(byToken: nil, channelId: channelName, info: nil, uid: 0)
         #endif
     }
     
-    /// Leaves the current channel.
     func leaveChannel() {
         #if targetEnvironment(simulator)
         print("SIMULATOR: Pretending to leave channel.")
         simulatorVideoPlayers.removeAll()
         remoteUserViews.removeAll()
         #else
-        // -- REAL DEVICE LOGIC --
         agoraEngine?.leaveChannel(nil)
         remoteUserViews.removeAll()
-        print("Left channel.")
         #endif
     }
     
-    /// Sends a chat message.
     func sendMessage(_ messageText: String) {
         #if targetEnvironment(simulator)
         let message = ChatMessage(isFromLocalUser: true, text: messageText)
@@ -114,12 +109,9 @@ class StreamingService: NSObject, ObservableObject {
         #endif
     }
     
-    // MARK: - Private Methods
-    
     #if !targetEnvironment(simulator)
     private func initializeAgoraEngine() {
         agoraEngine = AgoraRtcEngineKit.sharedEngine(withAppId: appId, delegate: self)
-        
         agoraEngine?.setRecordingAudioFrameParametersWithSampleRate(16000, channel: 1, mode: .readWrite, samplesPerCall: 1600)
     }
     #else
@@ -128,25 +120,20 @@ class StreamingService: NSObject, ObservableObject {
             print("❌ SIMULATOR ERROR: Could not find SecondVideo_Portfolio.mp4")
             return nil
         }
-        
         let player = AVPlayer(url: url)
         player.isMuted = true
         player.play()
-        
         simulatorVideoPlayers.append(player)
-        
         let playerLayer = AVPlayerLayer(player: player)
         let view = UIView()
         playerLayer.frame = view.bounds
         playerLayer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(playerLayer)
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: player.currentItem, queue: .main) { _ in
             player.seek(to: .zero)
             player.play()
         }
-        
         return view
     }
     #endif
@@ -159,7 +146,7 @@ extension StreamingService: AgoraRtcEngineDelegate, AgoraAudioFrameDelegate {
     
     func onRecordAudioFrame(_ frame: AgoraAudioFrame) -> Bool {
         if let data = frame.buffer {
-            // Publish the raw audio data to any listeners 
+            // Publish the raw audio data to any listeners
             rawAudioPublisher.send(data)
         }
         return true

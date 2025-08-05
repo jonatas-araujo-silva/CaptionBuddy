@@ -2,9 +2,7 @@ import Foundation
 import Combine
 import Speech
 
-/* Handles the specific business logic for real-time transcription
- * Takes raw audio data from the StreamingService and provides a live transcript.
- */
+// Depends on a protocol for dependency injection and publishes errors for the UI.
 
 @MainActor
 class TranscribeLiveStreamUseCase: ObservableObject {
@@ -13,20 +11,23 @@ class TranscribeLiveStreamUseCase: ObservableObject {
     @Published var liveCaptionText: String = ""
     @Published var animationName: String? = nil
     
+    // Publish errors to UI
+    @Published var transcriptionError: String? = nil
+    
     // MARK: - Private Properties
-    private let streamingService: StreamingService
+    private let streamingService: StreamingServiceProtocol
     private var cancellables = Set<AnyCancellable>()
     
-    // Properties for Apple's Speech framework
-    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+    // Uses the device current locale
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale.current)
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
-    private let audioEngine = AVAudioEngine()
 
-    init(streamingService: StreamingService) {
+    // This service is being injected
+    init(streamingService: StreamingServiceProtocol) {
         self.streamingService = streamingService
         
-        // Subscribe to raw audio publisher from StreamingService.
+        // Subscribe to the raw audio publisher from the service protocol.
         streamingService.rawAudioPublisher
             .sink { [weak self] audioData in
                 self?.appendAudioData(audioData)
@@ -37,17 +38,16 @@ class TranscribeLiveStreamUseCase: ObservableObject {
     /// Starts the transcription process.
     func start() {
         guard speechRecognizer?.isAvailable == true else {
-            print("❌ Speech recognizer is not available.")
+            self.transcriptionError = "Speech recognizer is not available for the current language."
             return
         }
         
-        // Request authorization to use speech recognition.
         SFSpeechRecognizer.requestAuthorization { authStatus in
             Task { @MainActor in
                 if authStatus == .authorized {
                     self.startRecognition()
                 } else {
-                    print("❌ Speech recognition authorization denied.")
+                    self.transcriptionError = "Please grant permission to use speech recognition."
                 }
             }
         }
@@ -62,39 +62,38 @@ class TranscribeLiveStreamUseCase: ObservableObject {
         
         liveCaptionText = ""
         animationName = nil
+        transcriptionError = nil
     }
     
     // MARK: - Private Methods
     
     private func startRecognition() {
-        // Create a new recognition request.
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
         guard let recognitionRequest = recognitionRequest else { return }
         
         recognitionRequest.shouldReportPartialResults = true
         
-        // Start the recognition task.
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
-            guard let self = self, let result = result else {
-                self?.stop()
-                return
+            guard let self = self else { return }
+            
+            if let result = result {
+                let transcript = result.bestTranscription.formattedString
+                self.handleNewTranscript(transcript)
             }
             
-            // Update the UI with the latest transcript.
-            let transcript = result.bestTranscription.formattedString
-            self.handleNewTranscript(transcript)
+            if error != nil {
+                self.stop()
+            }
         }
     }
     
     private func appendAudioData(_ data: Data) {
-        // I'll need to convert the raw Data into a PCM buffer that SFSpeechRecognizer can use when I'll put this app into production.
-        // recognitionRequest?.append(pcmBuffer)
+        // Architecture is ready for logic to be plugged in.
     }
     
     private func handleNewTranscript(_ transcript: String) {
         self.liveCaptionText = transcript
         
-        // Find the last word to check for an animation.
         if let lastWord = transcript.split(separator: " ").last {
             self.animationName = AnimationService.shared.animationName(for: String(lastWord))
         }
