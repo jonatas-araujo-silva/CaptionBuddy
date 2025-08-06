@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AgoraAppID</key>
+	<string>a691bece736d4fa1bc23caedb7ae49e7</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

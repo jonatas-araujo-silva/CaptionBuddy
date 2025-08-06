@@ -13,7 +13,7 @@ protocol StreamingServiceProtocol {
     
     func joinChannel(channelName: String, isBroadcaster: Bool)
     func leaveChannel()
-    func sendMessage(_ messageText: String) // Add this line
+    func sendMessage(_ messageText: String)
 }
 
 class StreamingService: NSObject, ObservableObject, StreamingServiceProtocol {
@@ -24,7 +24,14 @@ class StreamingService: NSObject, ObservableObject, StreamingServiceProtocol {
     var rawAudioPublisher = PassthroughSubject<Data, Never>()
     
     private var agoraEngine: AgoraRtcEngineKit?
-    private let appId: String = "YOUR_AGORA_APP_ID"
+    
+    private var appId: String {
+        guard let id = Bundle.main.object(forInfoDictionaryKey: "AgoraAppID") as? String else {
+            fatalError("AgoraAppID not found in Info.plist")
+        }
+        return id
+    }
+    
     private var dataStreamId: Int = 0
     
     #if targetEnvironment(simulator)
@@ -146,7 +153,7 @@ extension StreamingService: AgoraRtcEngineDelegate, AgoraAudioFrameDelegate {
     
     func onRecordAudioFrame(_ frame: AgoraAudioFrame) -> Bool {
         if let data = frame.buffer {
-            // Publish the raw audio data to any listeners
+            // Publish raw audio data to listeners
             rawAudioPublisher.send(data)
         }
         return true
