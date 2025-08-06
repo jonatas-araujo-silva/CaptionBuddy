@@ -11,7 +11,7 @@ jobs:
   deploy_to_testflight:
     name: Build, Test, and Deploy to TestFlight
     runs-on: macos-latest
-env: # <-- Add this section if it doesn't exist
+env: # 
       AGORA_APP_ID: ${{ secrets.AGORA_APP_ID }}
 
     steps:
