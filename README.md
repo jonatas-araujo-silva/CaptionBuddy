@@ -12,7 +12,6 @@
 <a href="https://github.com/jonatas-araujo-silva/CaptionBuddy">
 <img src="https://img.shields.io/badge/status-in_development-yellow" alt="Status">
 </a>
-<img src="https://img.shields.io/badge/Swift-5.10-orange.svg" alt="Swift">
 <img src="https://img.shields.io/badge/platform-iOS-lightgrey.svg" alt="Platform">
 </p>
 
