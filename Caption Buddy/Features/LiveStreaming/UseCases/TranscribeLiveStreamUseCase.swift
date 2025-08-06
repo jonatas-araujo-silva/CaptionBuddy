@@ -66,7 +66,6 @@ class TranscribeLiveStreamUseCase: ObservableObject {
     }
     
     // MARK: - Private Methods
-    
     private func startRecognition() {
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
         guard let recognitionRequest = recognitionRequest else { return }

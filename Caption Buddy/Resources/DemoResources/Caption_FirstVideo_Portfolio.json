@@ -1,0 +1,67 @@
+[
+    {
+        "text": "Hi",
+        "startTime": 0.5,
+        "duration": 0.4
+    },
+    {
+        "text": "there,",
+        "startTime": 0.7,
+        "duration": 0.4
+    },
+    {
+        "text": "let's",
+        "startTime": 1.6,
+        "duration": 0.4
+    },
+    {
+        "text": "focus",
+        "startTime": 2.0,
+        "duration": 0.5
+    },
+    {
+        "text": "on",
+        "startTime": 2.5,
+        "duration": 0.1
+    },
+    {
+        "text": "health",
+        "startTime": 2.8,
+        "duration": 0.5
+    },
+    {
+        "text": "at",
+        "startTime": 3.3,
+        "duration": 0.2
+    },
+    {
+        "text": "work",
+        "startTime": 3.5,
+        "duration": 0.7
+    },
+    {
+        "text": "which",
+        "startTime": 4.5,
+        "duration": 0.3
+    },
+    {
+        "text": "can",
+        "startTime": 4.8,
+        "duration": 0.3
+    },
+    {
+        "text": "improve",
+        "startTime": 5.1,
+        "duration": 0.6
+    },
+    {
+        "text": "our",
+        "startTime": 5.7,
+        "duration": 0.3
+    },
+    {
+        "text": "productivity.",
+        "startTime": 6.0,
+        "duration": 1.5
+    }
+]
